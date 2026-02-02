@@ -1,0 +1,51 @@
+# =========================
+# Python
+# =========================
+*.pyc
+*.pyo
+*.pyd
+__pycache__/
+*.sqlite3
+
+# =========================
+# Virtual Environment
+# =========================
+venv/
+ENV/
+env/
+
+# =========================
+# Django
+# =========================
+*.log
+*.pot
+db.sqlite3
+media/
+staticfiles/
+
+# =========================
+# IDEs / Editors
+# =========================
+.vscode/
+.idea/
+
+# =========================
+# OS generated
+# =========================
+.DS_Store
+Thumbs.db
+
+# =========================
+# Testing / Coverage
+# =========================
+htmlcov/
+.coverage
+.cache
+pytest_cache/
+nosetests.xml
+coverage.xml
+
+# =========================
+# Dependency managers
+# =========================
+Pipfile.lock

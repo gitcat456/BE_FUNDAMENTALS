@@ -3,6 +3,7 @@ from .models import Author, Posts
 from .serializers import AuthorSerializer, PostSerializer
 from django.shortcuts import get_object_or_404
 from django.http import JsonResponse, HttpResponse
+from django.views.generic import ListView
 
 def post_detail(request, id):
     if request.method != "GET":
@@ -13,9 +14,12 @@ def post_detail(request, id):
         }
         return JsonResponse(res)
     else :
-       print('Method is a GET request')
-    
+       print(request.path)
     return HttpResponse("Cha He KaFei!")
+
+def all_posts(request, safe=False):
+    posts = list(Posts.objects.values())
+    return JsonResponse(posts, safe=False)
     
 
 class AuthorViewSet(viewsets.ModelViewSet):

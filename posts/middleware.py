@@ -12,7 +12,7 @@ class RequestLoggerMiddleware:
         start_time = time.time()
 
         # Log request info
-        logger.info(f"Incoming request: {request.scheme} {request.method} {request.path}")
+        logger.info(f"Incoming request: \n Scheme: {request.scheme} \n Method: {request.method} \n Path: {request.path}")
 
         # Call next middleware / view
         response = self.get_response(request)

@@ -1,5 +1,7 @@
 import time
 import logging
+from django.shortcuts import redirect
+
 
 logger = logging.getLogger("django.request")  
 class RequestLoggerMiddleware:
@@ -9,10 +11,13 @@ class RequestLoggerMiddleware:
 
     def __call__(self, request):
         # Record start time
-        start_time = time.time()
+        start_time = time.time()   
 
         # Log request info
         logger.info(f"Incoming request: \n Scheme: {request.scheme} \n Method: {request.method} \n Path: {request.path}")
+        
+        if request.path == '/':
+            return redirect("/api/author/")
 
         # Call next middleware / view
         response = self.get_response(request)

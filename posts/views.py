@@ -6,16 +6,13 @@ from django.http import JsonResponse, HttpResponse
 from django.views.generic import ListView
 
 def post_detail(request, id):
-    if request.method != "GET":
-        post = Posts.objects.get(id=id)
+        post = get_object_or_404(Posts, id=id)
         res = {
             "title": post.title,
             "uuid": post.uuid
         }
         return JsonResponse(res)
-    else :
-       print(request.path)
-    return HttpResponse("Cha He KaFei!")
+    
 
 def all_posts(request, safe=False):
     posts = list(Posts.objects.values())

@@ -24,9 +24,37 @@ def post_list_create(request):
             serializer.save()
             return Response(serializer.data, status=201)
         return Response(serializer.errors, status=400)
-        
+       
 
+@api_view(["GET","PUT", "DELETE"])
 def post_detail(request, id):
+    
+    post = get_object_or_404(Posts, id=id)
+    
+    if request.method == "GET":
+        serializer = PostSerializer(post)
+        return Response(serializer.data)
+    
+    elif request.method == "PUT":
+        serializer = PostSerializer(post, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data , status=200)
+        return Response(serializer.errors, status=400)
+    
+    elif request.method == "DELETE":
+        post.delete()
+        return Response(status=204)
+        
+    
+    
+    
+    
+    
+    
+    
+
+def post_details(request, id):
         post = get_object_or_404(Posts, id=id)
         res = {
             "title": post.title,

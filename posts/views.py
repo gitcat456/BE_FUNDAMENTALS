@@ -6,6 +6,25 @@ from django.http import JsonResponse, HttpResponse
 from django.views.generic import ListView
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+
+@api_view(["GET", "POST"])
+def post_list_create(request):
+    
+    if request.method == "GET":
+        posts = Posts.objects.all()
+        serializer = PostSerializer(posts, many=True)
+        return Response(serializer.data)
+    
+    elif request.method == "POST":
+        print(request.data)
+        serializer = PostSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=201)
+        return Response(serializer.errors, status=400)
+        
 
 def post_detail(request, id):
         post = get_object_or_404(Posts, id=id)

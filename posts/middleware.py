@@ -17,7 +17,10 @@ class RequestLoggerMiddleware:
         logger.info(f"Incoming request: \n Scheme: {request.scheme} \n Method: {request.method} \n Path: {request.path}")
         
         if request.path == '/':
-            return redirect("/api/author/")
+            return redirect("/api/posts/")
+        
+        if request.method == "POST":
+            print(request.data)
 
         # Call next middleware / view
         response = self.get_response(request)

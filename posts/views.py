@@ -26,7 +26,7 @@ def post_list_create(request):
         return Response(serializer.errors, status=400)
        
 
-@api_view(["GET","PUT", "DELETE"])
+@api_view(["GET","PATCH", "DELETE"])
 def post_detail(request, id):
     
     post = get_object_or_404(Posts, id=id)
@@ -35,8 +35,8 @@ def post_detail(request, id):
         serializer = PostSerializer(post)
         return Response(serializer.data)
     
-    elif request.method == "PUT":
-        serializer = PostSerializer(post, data=request.data)
+    elif request.method == "PATCH":
+        serializer = PostSerializer(post, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data , status=200)

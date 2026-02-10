@@ -27,9 +27,9 @@ def post_list_create(request):
        
 
 @api_view(["GET","PATCH", "DELETE"])
-def post_detail(request, id):
+def post_detail(request, pk):
     
-    post = get_object_or_404(Posts, id=id)
+    post = get_object_or_404(Posts, pk=pk)
     
     if request.method == "GET":
         serializer = PostSerializer(post)

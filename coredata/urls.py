@@ -1,6 +1,6 @@
 from django.urls import path
 from .views import list_data
 
-urlpattern = [
+urlpatterns = [
     path('data_list/', list_data)
 ]

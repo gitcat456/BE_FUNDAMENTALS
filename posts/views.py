@@ -8,6 +8,8 @@ from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+import datetime
+from django.utils import timezone
 
 @api_view(["GET", "POST"])
 def post_list_create(request):
@@ -22,7 +24,17 @@ def post_list_create(request):
         serializer = PostSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
-            return Response(serializer.data, status=201)
+            
+            response = {
+                "status":201,
+                "message":"post created successfully",
+                "post":{
+                        "uuid": serializer.data["uuid"],
+                        "title": serializer.data["title"]
+                    }
+            }
+            
+            return Response(response)
         return Response(serializer.errors, status=400)
        
 
@@ -39,7 +51,14 @@ def post_detail(request, pk):
         serializer = PostSerializer(post, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
-            return Response(serializer.data , status=200)
+            response= {
+                "updated by": "user3435",
+                "status": 200,
+                "message": "post updated successfully",
+                "post" : serializer.data,
+                "updated at": timezone.now()
+            }
+            return Response(response)
         return Response(serializer.errors, status=400)
     
     elif request.method == "DELETE":

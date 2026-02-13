@@ -3,6 +3,12 @@ from rest_framework.decorators import api_view
 from .models import Data
 from .serializers import DataSerializer
 from django.shortcuts import get_object_or_404
+from rest_framework import viewsets 
+
+
+class DataViewSets(viewsets.ModelViewset):
+    queryset = Data.objects.all()
+    serializer = DataSerializer
 
 #tell DRF that this is an API endpoint 
 @api_view(["GET", "POST"]) #Error 405-method not allowed for other methods 

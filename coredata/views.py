@@ -16,20 +16,23 @@ def list_create_data(request):
   
   
   if request.method == "GET":
-    filters ={}
+    queryset = Data.objects.all()
+    
     id_number = request.query_params.get("user_idNo")
     name = request.query_params.get("user_name")
     
     if id_number:
-        filters["id_number"] = id_number
-        queryset = Data.objects.filter(**filters)
-        if not queryset:
-            return Response({"message": "Resource not Found!!"}, status=404)
+       queryset = queryset.filter(id_number=id_number)
+           
     if name:
-        filters["name"] = name
-        queryset = Data.objects.filter(name__icontains=name)
-    else:
-        queryset = Data.objects.all()
+       queryset = queryset.filter(name__icontains=name)
+
+    if not queryset.exists():
+            return Response(
+                {"message": "Resource not Found!!"}, 
+                status=404
+             )
+        
     
     #take python objects and convert them into JSON-safe data
     #many=True coz a queryset is not a single object

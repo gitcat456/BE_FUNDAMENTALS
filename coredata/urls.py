@@ -7,7 +7,7 @@ router.register(r'model-view-set', DataViewSets)
 
 
 urlpatterns = [
-    path('', include(router.urls)),
+    path('viewsets/', include(router.urls)),
     path('data_list/', list_create_data),
     path('data_detail/<uuid:uuid>/', data_detail),
     

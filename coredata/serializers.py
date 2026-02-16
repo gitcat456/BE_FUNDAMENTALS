@@ -1,16 +1,26 @@
 from rest_framework import serializers
 from .models import Data
+import re
 
 class DataSerializer(serializers.ModelSerializer):
     
      class Meta:
         model = Data
-        fields = ['name', 'uni', 'nationality', 'id_number']
+        fields = ['id', 'name', 'uni', 'nationality', 'id_number']
         
         #field level validation
      def validate_id_number(self, value):
-        if value < 10000:
-            raise serializers.ValidationError("ID number too Short!!")
+        if len(str(value)) < 5 or value < 0 :
+            raise serializers.ValidationError("ID number must be at least 5 digits and positive")
+        return value
+    
+     def validate_name(self, value):
+        value = value.strip() #prevent empty strings or weird spacing:
+
+        if not re.fullmatch(r"[A-Za-z\s'-]+", value): #reject numbers 
+            raise serializers.ValidationError(
+                "Name must contain only letters, spaces, hyphens or apostrophes."
+            )
         return value
     
         #Object-Level validation
@@ -36,7 +46,7 @@ class DataSerializer(serializers.ModelSerializer):
     
     # #works when :serializer = DataSerializer(instance=obj, data=request_data)
     # def update(self, instance, validated_data):
-    #     instance.name = validated_data.get("name", instance.name) #ake the new value if the client provided it, Otherwise, keep the old value (instance.name) Then assign it to instance.name.
+    #     instance.name = validated_data.get("name", instance.name) #take the new value if the client provided it, Otherwise, keep the old value (instance.name) Then assign it to instance.name.
     #     instance.uni = validated_data.get("uni", instance.uni)
     #     instance.nationality = validated_data.get("nationality", instance.nationality)
     #     instance.id_number = validated_data.get("id_number", instance.id_number)

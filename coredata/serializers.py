@@ -20,6 +20,14 @@ class DataSerializer(serializers.Serializer):
         instance.id_number = validated_data.get("id_number", instance.id_number)
         instance.save()
         return instance
+    
+    def to_representation(self, instance):
+        print("REPRESENTING")
+        return super().to_representation(instance)
+    
+    def to_internal_value(self, data):
+        print("PROCESSING INPUT")
+        return super().to_internal_value(data)
 
 
 # class DataSerializer(serializers.ModelSerializer):

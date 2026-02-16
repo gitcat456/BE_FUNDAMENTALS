@@ -10,8 +10,18 @@ class DataSerializer(serializers.ModelSerializer):
         #field level validation
      def validate_id_number(self, value):
         if value < 10000:
-            raise serializers.ValidationError("ID number too Short")
+            raise serializers.ValidationError("ID number too Short!!")
         return value
+    
+        #Object-Level validation
+     def validate(self, data):
+         if data['uni'].lower() == "mku" and data['nationality'].lower() != "kenya":
+             raise serializers.ValidationError(
+                 f"only Kenyans can be enrolled in MKU!! \n please check for unis available for {data['nationality']} students"
+                 
+             )
+         return data
+         
         
     # id = serializers.IntegerField(read_only=True) #read_only because DB creates it.
     # name = serializers.CharField(max_length=50)

@@ -1,6 +1,6 @@
 from rest_framework import viewsets
-from .models import Author, Posts
-from .serializers import AuthorSerializer, PostSerializer
+from .models import Author, Posts, Tag
+from .serializers import AuthorSerializer, PostSerializer, TagSerializer
 from django.shortcuts import get_object_or_404
 from django.http import JsonResponse, HttpResponse
 from django.views.generic import ListView
@@ -86,7 +86,7 @@ def all_posts(request, safe=False):
     posts = list(Posts.objects.values())
     return JsonResponse(posts, safe=False)
     
-@method_decorator(login_required, name="dispatch")
+# @method_decorator(login_required, name="dispatch")
 class AuthorViewSet(viewsets.ModelViewSet):
     queryset = Author.objects.all()
     serializer_class = AuthorSerializer
@@ -107,4 +107,7 @@ class PostViewSet(viewsets.ModelViewSet):
         return queryset
         
   
+class TagViewSet(viewsets.ModelViewSet):
+    queryset = Tag.objects.all()
+    serializer_class = TagSerializer
         

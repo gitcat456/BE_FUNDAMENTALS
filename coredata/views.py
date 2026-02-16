@@ -4,8 +4,9 @@ from .models import Data
 from .serializers import DataSerializer
 from django.shortcuts import get_object_or_404
 from rest_framework import viewsets 
+from rest_framework import status
 
-
+#Todo: restrict queryset to request.user after auth is implemented
 class DataViewSets(viewsets.ModelViewSet):
     queryset = Data.objects.all()
     serializer_class = DataSerializer
@@ -18,7 +19,7 @@ def list_create_data(request):
   if request.method == "GET":
     queryset = Data.objects.all()
     
-    id_number = request.query_params.get("user_idNo")
+    id_number = request.query_params.get("user_idNo") #to throw off hackers type shi
     name = request.query_params.get("user_name")
     
     if id_number:
@@ -31,8 +32,7 @@ def list_create_data(request):
             return Response(
                 {"message": "Resource not Found!!"}, 
                 status=404
-             )
-        
+             )      
     
     #take python objects and convert them into JSON-safe data
     #many=True coz a queryset is not a single object
@@ -56,6 +56,10 @@ def list_create_data(request):
 def data_detail(request, uuid):
     #obj = Data.objects.get(uuid=uuid)
     obj = get_object_or_404(Data, uuid=uuid)
+    # try:
+    #     obj=Data.objects.get(uuid=uuid)
+    # except Data.DoesNotExist:
+    #     return Response(status=status.HTTP_404_NOT_FOUND)
     
     if request.method == "GET":
         serializer = DataSerializer(obj)

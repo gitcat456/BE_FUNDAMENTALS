@@ -13,18 +13,23 @@ class DataSerializer(serializers.Serializer):
     def create(self, validated_data):
         return Data.objects.create(**validated_data)
     
+    #works when :serializer = DataSerializer(instance=obj, data=request_data)
     def update(self, instance, validated_data):
-        instance.name = validated_data.get("name", instance.name)
+        instance.name = validated_data.get("name", instance.name) #ake the new value if the client provided it, Otherwise, keep the old value (instance.name) Then assign it to instance.name.
         instance.uni = validated_data.get("uni", instance.uni)
         instance.nationality = validated_data.get("nationality", instance.nationality)
         instance.id_number = validated_data.get("id_number", instance.id_number)
-        instance.save()
-        return instance
+        instance.save() #Persists changes to the database.
+        return instance  #Returns the updated object, which DRF will use for serialization back to JSON.
     
+    #serailization ie Model->JSON
+    #called when you access : serializer = DataSerializer(obj)
     def to_representation(self, instance):
         print("REPRESENTING")
-        return super().to_representation(instance)
+        return super().to_representation(instance) #Converts instance fields into a Python dictionary that becomes JSON.
     
+    #deserialization ie JSON-> Python
+    #called when : serializer = DataSerializer(data=request_data)
     def to_internal_value(self, data):
         print("PROCESSING INPUT")
         return super().to_internal_value(data)

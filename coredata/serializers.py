@@ -1,41 +1,50 @@
 from rest_framework import serializers
 from .models import Data
 
-class DataSerializer(serializers.Serializer):
-    id = serializers.IntegerField(read_only=True) #read_only because DB creates it.
-    name = serializers.CharField(max_length=50)
-    uni = serializers.CharField(max_length=50)
-    nationality = serializers.CharField(max_length=30)
-    id_number = serializers.IntegerField()
-    created_at = serializers.DateTimeField(read_only=True) #bcoz auto genereated
-    uuid = serializers.UUIDField(read_only=True) # model sets it automatically
-
-    def create(self, validated_data):
-        return Data.objects.create(**validated_data)
+class DataSerializer(serializers.ModelSerializer):
     
-    #works when :serializer = DataSerializer(instance=obj, data=request_data)
-    def update(self, instance, validated_data):
-        instance.name = validated_data.get("name", instance.name) #ake the new value if the client provided it, Otherwise, keep the old value (instance.name) Then assign it to instance.name.
-        instance.uni = validated_data.get("uni", instance.uni)
-        instance.nationality = validated_data.get("nationality", instance.nationality)
-        instance.id_number = validated_data.get("id_number", instance.id_number)
-        instance.save() #Persists changes to the database.
-        return instance  #Returns the updated object, which DRF will use for serialization back to JSON.
+     class Meta:
+        model = Data
+        fields = ['name', 'uni', 'nationality', 'id_number']
+        
+        #field level validation
+     def validate_id_number(self, value):
+        if value < 10000:
+            raise serializers.ValidationError("ID number too Short")
+        return value
+        
+    # id = serializers.IntegerField(read_only=True) #read_only because DB creates it.
+    # name = serializers.CharField(max_length=50)
+    # uni = serializers.CharField(max_length=50)
+    # nationality = serializers.CharField(max_length=30)
+    # id_number = serializers.IntegerField()
+    # created_at = serializers.DateTimeField(read_only=True) #bcoz auto genereated
+    # uuid = serializers.UUIDField(read_only=True) # model sets it automatically
+
+    # def create(self, validated_data):
+    #     return Data.objects.create(**validated_data)
     
-    #serailization ie Model->JSON
-    #called when you access : serializer = DataSerializer(obj)
-    def to_representation(self, instance):
-        print("REPRESENTING")
-        return super().to_representation(instance) #Converts instance fields into a Python dictionary that becomes JSON.
+    # #works when :serializer = DataSerializer(instance=obj, data=request_data)
+    # def update(self, instance, validated_data):
+    #     instance.name = validated_data.get("name", instance.name) #ake the new value if the client provided it, Otherwise, keep the old value (instance.name) Then assign it to instance.name.
+    #     instance.uni = validated_data.get("uni", instance.uni)
+    #     instance.nationality = validated_data.get("nationality", instance.nationality)
+    #     instance.id_number = validated_data.get("id_number", instance.id_number)
+    #     instance.save() #Persists changes to the database.
+    #     return instance  #Returns the updated object, which DRF will use for serialization back to JSON.
     
-    #deserialization ie JSON-> Python
-    #called when : serializer = DataSerializer(data=request_data)
-    def to_internal_value(self, data):
-        print("PROCESSING INPUT")
-        return super().to_internal_value(data)
+    # #serailization ie Model->JSON
+    # #called when you access : serializer = DataSerializer(obj)
+    # def to_representation(self, instance):
+    #     print("REPRESENTING")
+    #     return super().to_representation(instance) #Converts instance fields into a Python dictionary that becomes JSON.
+    
+    # #deserialization ie JSON-> Python
+    # #called when : serializer = DataSerializer(data=request_data)
+    # def to_internal_value(self, data):
+    #     print("PROCESSING INPUT")
+    #     return super().to_internal_value(data)
 
 
-# class DataSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = Data
-#         fields = "__all__"
+
+   

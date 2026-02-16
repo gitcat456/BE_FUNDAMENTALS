@@ -14,10 +14,13 @@ class Author(models.Model):
         if not self.slug: 
             self.slug = slugify(self.name)
         super().save(*args, **kwargs)
-    
+  
+class Tag(models.Model):
+    name = models.CharField(max_length=50)  
 
 class Posts(models.Model):
     author = models.ForeignKey(Author, on_delete=models.CASCADE, related_name='posts')
+    tags = models.ManyToManyField(Tag, blank=True, null=True)
     title = models.CharField(max_length=50)
     content = models.TextField()
     date_published = models.DateTimeField(auto_now_add=True)

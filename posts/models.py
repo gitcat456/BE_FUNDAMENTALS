@@ -16,6 +16,7 @@ class Author(models.Model):
         super().save(*args, **kwargs)
   
 class Tag(models.Model):
+
     name = models.CharField(max_length=50)  
 
 class Posts(models.Model):
@@ -25,6 +26,8 @@ class Posts(models.Model):
     content = models.TextField()
     date_published = models.DateTimeField(auto_now_add=True)
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, blank=True, null=True)
+    is_published = models.BooleanField(default=False)
+    
     
     def __str__(self):
         return f"{self.title} by {self.author}"

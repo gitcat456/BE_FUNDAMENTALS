@@ -43,7 +43,7 @@ def list_create_data(request):
   
   elif request.method == "POST":
       #take this raw input and validate it against the Data model
-      serializer = DataSerializer(data=request.data)
+      serializer = DataSerializer(data=request.data) #deserialization
       if serializer.is_valid():
           #create a data instance
           serializer.save()

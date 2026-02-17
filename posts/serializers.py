@@ -26,12 +26,18 @@ class PostSerializer(serializers.ModelSerializer):
     #Nested Serializer
     #tags = TagSerializer(many=True, read_only=True)
     
-    #slug related field for manyToMany relations
+    #slug related field for manyToMany relations..it returns slug names 
+    tags = serializers.SlugRelatedField(
+            many=True,
+            read_only=True,
+            slug_field='name'
+        )
     #tags = serializers.SlugRelatedField(
         #     many=True,
-        #     read_only=True,
+        #     queryset=Tag.objects.all(),
         #     slug_field='name'
         # )
+
     
     #using source
     tag_count = serializers.IntegerField(source='tags.count', read_only=True)

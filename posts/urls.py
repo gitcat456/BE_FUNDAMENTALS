@@ -9,9 +9,9 @@ router.register(r'tags', TagViewSet)
 
 urlpatterns = [
    path('posts_list/', post_list_create, name = "create_list"),
-   path('posts/<int:pk>/', post_detail),
-   path('posts/<int:pk>/edit', post_detail),
-   path('posts/<int:pk>/delete', post_detail),
+   path('posts_fbv/<int:pk>/', post_detail),
+   path('posts_fbv/<int:pk>/edit', post_detail),
+   path('posts_fbv/<int:pk>/delete', post_detail),
    path('', include(router.urls)),
       
 ]

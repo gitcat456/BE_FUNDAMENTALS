@@ -1,9 +1,14 @@
 from rest_framework import serializers
 from .models import Data
 import re
+from rest_framework.validators import ValidationError
+
+# def check_name_no_numbers(value):
+#     if any(char.isdigit() for char in value):
+#         raise ValidationError("Name cannot contain numbers!")
 
 class DataSerializer(serializers.ModelSerializer):
-    
+    # name = serializers.CharField(validators=[check_name_no_numbers])
      class Meta:
         model = Data
         fields = ['id', 'name', 'uni', 'nationality', 'id_number']

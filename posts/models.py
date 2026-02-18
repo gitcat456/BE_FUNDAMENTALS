@@ -27,7 +27,7 @@ class Posts(models.Model):
     date_published = models.DateTimeField(auto_now_add=True)
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, blank=True, null=True)
     is_published = models.BooleanField(default=False)
-    
+    likes = models.IntegerField(default=0)
     
     def __str__(self):
         return f"{self.title} by {self.author}"

@@ -105,8 +105,7 @@ class PostViewSet(viewsets.ModelViewSet):
         if search:
             queryset = queryset.filter(title__icontains=search)
         return queryset
-    
-    #todo: implement  likes logic    
+       
     #custom endpoint to publish a post  POST /posts/{id}/publish/
     @action(detail=True, methods=["post"])
     def publish(self, request, pk=None):
@@ -129,7 +128,14 @@ class PostViewSet(viewsets.ModelViewSet):
         post.likes += 1
         post.save()
         return Response({"likes": post.likes})
-        
+    
+    #get top liked posts posts/top_posts
+    @action(detail=False, methods=["get"])
+    def top_posts(self, request):
+        posts = Posts.objects.order_by('-likes')
+        serializer = self.get_serializer(posts, many=True)
+        return Response(serializer.data)
+           
   
 class TagViewSet(viewsets.ModelViewSet):
     queryset = Tag.objects.all()

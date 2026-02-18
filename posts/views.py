@@ -6,7 +6,7 @@ from django.http import JsonResponse, HttpResponse
 from django.views.generic import ListView
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, action
 from rest_framework.response import Response
 import datetime
 from django.utils import timezone
@@ -105,6 +105,30 @@ class PostViewSet(viewsets.ModelViewSet):
         if search:
             queryset = queryset.filter(title__icontains=search)
         return queryset
+    
+    #todo: implement  likes logic    
+    #custom endpoint to publish a post  POST /posts/{id}/publish/
+    @action(detail=True, methods=["post"])
+    def publish(self, request, pk=None):
+        post = self.get_object()
+        post.is_published = True
+        post.save()
+        return Response({"status": "Post Published!"})
+    
+    #GET /posts/published/
+    @action(detail=False, methods=["get"])
+    def published(self, request):
+        posts = Posts.objects.filter(is_published=True)
+        serializer = self.get_serializer(posts, many=True)
+        return Response(serializer.data)
+    
+    #POST /posts/{id}/like
+    @action(detail=True, methods=["post"])
+    def like(self, request, pk=None):
+        post = self.get_object()
+        post.likes += 1
+        post.save()
+        return Response({"likes": post.likes})
         
   
 class TagViewSet(viewsets.ModelViewSet):

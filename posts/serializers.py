@@ -23,7 +23,7 @@ class PostSerializer(serializers.ModelSerializer):
     #     queryset=Author.objects.all()
     # )
     
-    #Nested Serializer
+    #Nested Serializer or depth=1
     #tags = TagSerializer(many=True, read_only=True)
     
     #slug related field for manyToMany relations..it returns slug names 
@@ -32,6 +32,7 @@ class PostSerializer(serializers.ModelSerializer):
             read_only=True,
             slug_field='name'
         )
+    #handle write 
     #tags = serializers.SlugRelatedField(
         #     many=True,
         #     queryset=Tag.objects.all(),
@@ -41,12 +42,12 @@ class PostSerializer(serializers.ModelSerializer):
     
     #using source
     tag_count = serializers.IntegerField(source='tags.count', read_only=True)
-    
+    author_name = serializers.CharField(source='author.name')
 
     
     class Meta:
         model = Posts
-        fields = ['id', 'uuid', 'title', 'content', 'author', 'tag_count', 'tags']
+        fields = ['id', 'uuid', 'title', 'content', 'author_name', 'likes', 'tag_count', 'tags']
         
     
         

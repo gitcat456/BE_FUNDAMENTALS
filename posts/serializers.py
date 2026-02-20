@@ -42,12 +42,13 @@ class PostSerializer(serializers.ModelSerializer):
     
     #using source
     tag_count = serializers.IntegerField(source='tags.count', read_only=True)
-    author_name = serializers.CharField(source='author.name')
-
+    author_name = serializers.CharField(source='author.name', read_only=True)
+    author = AuthorSerializer(read_only=True)
     
     class Meta:
         model = Posts
-        fields = ['id', 'uuid', 'title', 'content', 'author_name', 'likes', 'tag_count', 'tags']
+        fields = ['id', 'uuid', 'title', 'content', 'author', 'author_name', 'likes', 'tag_count', 'tags']
+       
         
        # field level validation 
     def validate_title(self, value):

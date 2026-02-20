@@ -66,4 +66,11 @@ class PostSerializer(serializers.ModelSerializer):
             )
         
         return value 
-        
+    
+    #override create()
+    def create(self, validated_data):   
+           
+        author_data = validated_data.pop('author') #extract nested data
+        author = Author.objects.create(**author_data)
+        post = Posts.objects.create(author=author, **validated_data)  
+        return post

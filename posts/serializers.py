@@ -49,5 +49,16 @@ class PostSerializer(serializers.ModelSerializer):
         model = Posts
         fields = ['id', 'uuid', 'title', 'content', 'author_name', 'likes', 'tag_count', 'tags']
         
-    
+       # field level validation 
+    def validate_title(self, value):
+        if len(value) < 5:
+            raise serializers.ValidationError("Title must contain more than 5 characters!!")
+        
+        banned_words = ['fake', 'illegal', 'scam', 'witchcraft']       
+        if any(word in value.lower() for word in banned_words):
+            raise serializers.ValidationError(
+                "Title contains Banned words"
+            )
+        
+        return value 
         

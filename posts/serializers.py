@@ -9,7 +9,8 @@ class TagSerializer(serializers.ModelSerializer):
 class AuthorSerializer(serializers.ModelSerializer):
     class Meta:
         model = Author
-        fields = ['id', 'name', 'email','slug' ]
+        fields = ['id', 'name', 'email', 'slug' ]
+        read_only_fields = ['slug', 'id']
 
 class PostSerializer(serializers.ModelSerializer):
     
@@ -42,15 +43,15 @@ class PostSerializer(serializers.ModelSerializer):
     
     #using source..Access nested attributes, rename fields
     tag_count = serializers.IntegerField(source='tags.count', read_only=True)
-    author_name = serializers.CharField(source='author.name', read_only=True)
+    #author_name = serializers.CharField(source='author.name', read_only=True)
     
     #read only nesting 
-    author = AuthorSerializer(read_only=True)
+    author = AuthorSerializer()
     tags = TagSerializer(many=True, read_only=True)
     
     class Meta:
         model = Posts
-        fields = ['id', 'uuid', 'title', 'content', 'author', 'author_name', 'likes', 'tag_count', 'tags']
+        fields = ['id', 'uuid', 'title', 'content', 'author', 'likes', 'tag_count', 'tags']
        
         
        # field level validation 

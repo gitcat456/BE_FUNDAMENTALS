@@ -5,6 +5,7 @@ class TagSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tag
         fields = ['id', 'name']
+        read_only_fields = ['id']
 
 class AuthorSerializer(serializers.ModelSerializer):
     class Meta:
@@ -46,8 +47,12 @@ class PostSerializer(serializers.ModelSerializer):
     #author_name = serializers.CharField(source='author.name', read_only=True)
     
     #read only nesting 
+    # author = AuthorSerializer(read_only=True)
+    # tags = TagSerializer(many=True, read_only=True)
+    
+    #writable nesting
     author = AuthorSerializer()
-    tags = TagSerializer(many=True, read_only=True)
+    tags = TagSerializer(many=True)
     
     class Meta:
         model = Posts
@@ -68,8 +73,7 @@ class PostSerializer(serializers.ModelSerializer):
         return value 
     
     #override create()
-    def create(self, validated_data):   
-           
+    def create(self, validated_data):         
         author_data = validated_data.pop('author') #extract nested data
         author = Author.objects.create(**author_data)
         post = Posts.objects.create(author=author, **validated_data)  

@@ -77,11 +77,11 @@ class PostSerializer(serializers.ModelSerializer):
         author_data = validated_data.pop('author') #extract nested data
         tags_data = validated_data.pop('tags')
         
-        author = Author.objects.create(**author_data)
+        author,_ = Author.objects.get_or_create(**author_data)
         post = Posts.objects.create(author=author, **validated_data) 
         
         for tag_data in tags_data:
-            tag = Tag.objects.create(**tag_data)
+            tag, _ = Tag.objects.get_or_create(**tag_data)
             post.tags.add(tag)
            
         return post

@@ -1,6 +1,6 @@
 from rest_framework import viewsets
-from .models import Author, Posts, Tag
-from .serializers import AuthorSerializer, PostSerializer, TagSerializer
+from .models import Author, Posts, Tag, Comment
+from .serializers import AuthorSerializer, PostSerializer, TagSerializer, CommentSerializer
 from django.shortcuts import get_object_or_404
 from django.http import JsonResponse, HttpResponse
 from django.views.generic import ListView
@@ -141,3 +141,8 @@ class TagViewSet(viewsets.ModelViewSet):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
         
+
+class CommentViewSet(viewsets.ModelViewSet):
+    queryset = Comment.objects.all()
+    serializer_class = CommentSerializer
+    

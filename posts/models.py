@@ -14,6 +14,9 @@ class Author(models.Model):
         if not self.slug: 
             self.slug = slugify(self.name)
         super().save(*args, **kwargs)
+        
+    def __str__(self):
+        return f"{self.name}"
   
 class Tag(models.Model):
 

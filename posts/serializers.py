@@ -15,6 +15,20 @@ class AuthorSerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'email', 'slug' ]
         read_only_fields = ['slug', 'id']
 
+
+class CommentSerializer(serializers.ModelSerializer):
+
+    post = serializers.PrimaryKeyRelatedField(
+        queryset = Posts.objects.all()
+    )
+    author = serializers.PrimaryKeyRelatedField(
+        queryset = Author.objects.all()
+    )
+    class Meta:
+        model = Comment
+        fields = ['id', 'content', 'post', 'author', 'likes']
+        
+        
 class PostSerializer(serializers.ModelSerializer):
     
     # PrimaryKeyRelatedField (for write support)
@@ -47,22 +61,26 @@ class PostSerializer(serializers.ModelSerializer):
     #read only nesting 
     # author = AuthorSerializer(read_only=True)
     # tags = TagSerializer(many=True, read_only=True)
+    # comments = CommentSerializer(many=True, read_only=True)
     
     #writable nesting
     author = AuthorSerializer()
     tags = TagSerializer(many=True)
     
+    
     #SerializerMethodField lets you create a computed read-only field.
     word_count = serializers.SerializerMethodField()
+    
     
     #using source..Access nested attributes, rename fields
     post_title = serializers.CharField(source='title')
     tag_count = serializers.IntegerField(source='tags.count', read_only=True)
+    comments = serializers.IntegerField(source='comments.count', read_only=True)
     #author_name = serializers.CharField(source='author.name', read_only=True)
     
     class Meta:
         model = Posts
-        fields = ['id', 'uuid', 'post_title', 'content', 'word_count', 'author', 'likes', 'tag_count', 'tags']
+        fields = ['id', 'uuid', 'post_title', 'content', 'word_count', 'author', 'comments',  'likes', 'tag_count', 'tags']
         
     def get_word_count(self, obj):
         return len(obj.content.split())
@@ -97,14 +115,3 @@ class PostSerializer(serializers.ModelSerializer):
 
 
 
-class CommentSerializer(serializers.ModelSerializer):
-
-    post = serializers.PrimaryKeyRelatedField(
-        queryset = Posts.objects.all()
-    )
-    author = serializers.PrimaryKeyRelatedField(
-        queryset = Author.objects.all()
-    )
-    class Meta:
-        model = Comment
-        fields = ['id', 'content', 'post', 'author', 'likes']

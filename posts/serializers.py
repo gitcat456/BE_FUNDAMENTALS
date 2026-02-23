@@ -8,6 +8,8 @@ class TagSerializer(serializers.ModelSerializer):
         read_only_fields = ['id']
 
 class AuthorSerializer(serializers.ModelSerializer):
+    #allow post only on a field not get 
+    email = serializers.EmailField(write_only=True)
     class Meta:
         model = Author
         fields = ['id', 'name', 'email', 'slug' ]

@@ -40,7 +40,7 @@ class Posts(models.Model):
 class Comment(models.Model):
     id = models.AutoField(primary_key=True)
     content = models.CharField(max_length=50)
-    author = models.ForeignKey(Author, on_delete=models.CASCADE, related_name='comments')
+    author = models.ForeignKey(Author, on_delete=models.CASCADE)
     likes = models.IntegerField(default=0)
     post = models.ForeignKey(Posts , on_delete=models.CASCADE, related_name='comments', null=True)
 

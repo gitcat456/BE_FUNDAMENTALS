@@ -19,12 +19,7 @@ class Tag(models.Model):
 
     name = models.CharField(max_length=50)  
     
-class Comment(models.Model):
-    id = models.AutoField(primary_key=True)
-    content = models.CharField(max_length=50)
-    author = models.ForeignKey(Author, on_delete=models.CASCADE, related_name='comments')
-    likes = models.IntegerField(default=0)
-
+    
 class Posts(models.Model):
     author = models.ForeignKey(Author, on_delete=models.CASCADE, related_name='posts')
     tags = models.ManyToManyField(Tag, blank=True, null=True)
@@ -38,3 +33,11 @@ class Posts(models.Model):
     def __str__(self):
         return f"{self.title} by {self.author}"
     
+
+class Comment(models.Model):
+    id = models.AutoField(primary_key=True)
+    content = models.CharField(max_length=50)
+    author = models.ForeignKey(Author, on_delete=models.CASCADE, related_name='comments')
+    likes = models.IntegerField(default=0)
+    post = models.ForeignKey(Posts , on_delete=models.CASCADE, related_name='comments', null=True)
+

@@ -18,6 +18,12 @@ class Author(models.Model):
 class Tag(models.Model):
 
     name = models.CharField(max_length=50)  
+    
+class Comment(models.Model):
+    id = models.AutoField(primary_key=True)
+    content = models.CharField(max_length=50)
+    author = models.ForeignKey(Author, on_delete=models.CASCADE, related_name='comments')
+    likes = models.IntegerField(default=0)
 
 class Posts(models.Model):
     author = models.ForeignKey(Author, on_delete=models.CASCADE, related_name='posts')

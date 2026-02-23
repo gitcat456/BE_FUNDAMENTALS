@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Author, Posts, Tag
+from .models import Author, Posts, Tag, Comment
 
 class TagSerializer(serializers.ModelSerializer):
     class Meta:
@@ -94,3 +94,17 @@ class PostSerializer(serializers.ModelSerializer):
             post.tags.add(tag)  #link to posts
            
         return post
+
+
+
+class CommentSerializer(serializers.ModelSerializer):
+
+    post = serializers.PrimaryKeyRelatedField(
+        queryset = Posts.objects.all()
+    )
+    author = serializers.PrimaryKeyRelatedField(
+        queryset = Author.objects.all()
+    )
+    class Meta:
+        model = Comment
+        fields = ['id', 'content', 'post', 'author', 'likes']

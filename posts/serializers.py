@@ -54,9 +54,15 @@ class PostSerializer(serializers.ModelSerializer):
     author = AuthorSerializer()
     tags = TagSerializer(many=True)
     
+    #SerializerMethodField lets you create a computed read-only field.
+    word_count = serializers.SerializerMethodField()
+    
     class Meta:
         model = Posts
-        fields = ['id', 'uuid', 'title', 'content', 'author', 'likes', 'tag_count', 'tags']
+        fields = ['id', 'uuid', 'title', 'content', 'word_count', 'author', 'likes', 'tag_count', 'tags']
+        
+    def get_word_count(self, obj):
+        return len(obj.content.split())
        
         
        # field level validation 
@@ -82,6 +88,6 @@ class PostSerializer(serializers.ModelSerializer):
         
         for tag_data in tags_data:
             tag, _ = Tag.objects.get_or_create(**tag_data)
-            post.tags.add(tag)
+            post.tags.add(tag)  #link to posts
            
         return post

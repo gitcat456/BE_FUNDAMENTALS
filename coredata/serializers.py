@@ -3,6 +3,7 @@ from .models import Data
 import re
 from rest_framework.validators import ValidationError
 
+#easier alternative:
 # def check_name_no_numbers(value):
 #     if any(char.isdigit() for char in value):
 #         raise ValidationError("Name cannot contain numbers!")

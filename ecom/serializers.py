@@ -11,9 +11,9 @@ class OrderListSerializer(serializers.ModelSerializer):
         fields = ['id', 'customer_email', 'status', 'total_items', 'total_price', 'created_at']
     
     def get_total_items(self, obj):
-        return sum(item.quantity for item in obj.items.all())
+        return sum(item.quantity for item in obj.items.all())  #reverse relationship obj standds for instance of an order 
     
-    def get_total_price(self, obj):
+    def get_total_price(self, obj): 
         total = 0
         for item in obj.items.all():
             total += item.quantity * item.price_at_purchase

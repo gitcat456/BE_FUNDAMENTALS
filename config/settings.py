@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'posts',
     'coredata',
     'ecom',
+    'revamp',
 ]
 
 MIDDLEWARE = [

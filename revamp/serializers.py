@@ -9,10 +9,11 @@ class AuthorSerializer(serializers.ModelSerializer):
         
 class PostSerializer(serializers.ModelSerializer):
     last_opened = serializers.SerializerMethodField()
+    post_creator = serializers.CharField(source='author.email')
     
     class Meta:
         model = Post
-        fields = ['id', 'uuid', 'author', 'title', 'content', 'is_published', 'likes', 'last_opened']
+        fields = ['id', 'uuid', 'post_creator', 'title', 'content', 'is_published', 'likes', 'last_opened']
         read_only_fields = ['uuid', 'is_published']
         
     def get_last_opened(self, obj):

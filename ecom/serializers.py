@@ -2,6 +2,11 @@ from rest_framework import serializers
 from .models import Product, OrderItem, Order
 from django.db import transaction
 
+class ProductSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Product
+        fields = "__all__"
+
 class OrderListSerializer(serializers.ModelSerializer):
     total_items = serializers.SerializerMethodField()
     total_price = serializers.SerializerMethodField()

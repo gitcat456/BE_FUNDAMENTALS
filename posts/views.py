@@ -1,6 +1,6 @@
 from rest_framework import viewsets
 from .models import Author, Posts, Tag, Comment
-from .serializers import AuthorSerializer, PostSerializer, TagSerializer, CommentSerializer
+from .serializers import AuthorSerializer, PostSerializer, TagSerializer, CommentSerializer, ListPostSerializer
 from django.shortcuts import get_object_or_404
 from django.http import JsonResponse, HttpResponse
 from django.views.generic import ListView
@@ -36,7 +36,13 @@ def post_list_create(request):
             
             return Response(response)
         return Response(serializer.errors, status=400)
-       
+    
+@api_view(["GET"])   
+def post_list(request):
+    post = Posts.objects.all()
+    serializer = ListPostSerializer(post, many=True)
+    return Response(serializer.data)
+    
 
 @api_view(["GET","PATCH", "DELETE"])
 def post_detail(request, pk):
@@ -153,3 +159,5 @@ class CommentViewSet(viewsets.ModelViewSet):
         comments = post.comments.all()
         serializer = self.get_serializer(comments, many=True)
         return Response(serializer.data)
+    
+    

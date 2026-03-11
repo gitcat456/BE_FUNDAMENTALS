@@ -21,6 +21,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('posts.urls')),
     path('api/', include('coredata.urls')),
+     path('api/', include('ecom.urls')),
     path('api/', include('revamp.urls')),
     
 ]

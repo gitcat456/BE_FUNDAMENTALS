@@ -112,6 +112,20 @@ class PostSerializer(serializers.ModelSerializer):
             post.tags.add(tag)  #link to posts
            
         return post
+    
+class ListPostSerializer(serializers.ModelSerializer):
+    author = serializers.CharField(source='author.name', read_only=True)
+    comment_count = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = Posts
+        fields =['id', 'uuid', 'title', 'author', 'comment_count']
+    
+    def get_comment_count(self, obj):
+        return obj.comments.count()
+        
+        
+
 
 
 

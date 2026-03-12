@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'coredata',
     'ecom',
     'revamp',
+    'lib',
 ]
 
 MIDDLEWARE = [

@@ -6,6 +6,9 @@ class Book(models.Model):
     isbn = models.CharField(max_length=13, unique=True)
     available_copies = models.IntegerField()  # How many can be borrowed
     
+    def __str__(self):
+        return f"{self.title}"
+    
 class Member(models.Model):
     name = models.CharField(max_length=100)
     email = models.EmailField(unique=True)

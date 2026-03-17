@@ -114,16 +114,14 @@ class PostSerializer(serializers.ModelSerializer):
         return post
     
 class ListPostSerializer(serializers.ModelSerializer):
-    author = serializers.CharField(source='author.name', read_only=True)
-    comment_count = serializers.SerializerMethodField()
+    author_id = serializers.CharField(source='author.id', read_only=True)
+    comment_count = serializers.IntegerField(source='comments_count', read_only=True)
     
     class Meta:
         model = Posts
-        fields =['id', 'uuid', 'title', 'author', 'comment_count']
+        fields =['id', 'title', 'author_id', 'comment_count']
     
-    def get_comment_count(self, obj):
-        return obj.comments.count()
-        
+
         
 
 

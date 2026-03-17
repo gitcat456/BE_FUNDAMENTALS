@@ -11,7 +11,7 @@ router.register(r'comment', CommentViewSet)
 urlpatterns = [
    path('post_list/', post_list, name = "tests"),
    path('posts_list/', post_list_create, name = "create_list"),
-   path('posts_fbv/<int:pk>/', post_detail),
+   path('post_list/<int:pk>/', post_detail),
    path('posts_fbv/<int:pk>/edit', post_detail),
    path('posts_fbv/<int:pk>/delete', post_detail),
    path('', include(router.urls)),

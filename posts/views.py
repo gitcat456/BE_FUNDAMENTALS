@@ -59,7 +59,7 @@ def post_list(request):
 @api_view(["GET","PATCH", "DELETE"])
 def post_detail(request, pk):
     
-    post = get_object_or_404(Posts, pk=pk)
+    post = get_object_or_404(Posts.objects.select_related('author'), pk=pk)
     
     if request.method == "GET":
         serializer = PostSerializer(post)
@@ -83,12 +83,6 @@ def post_detail(request, pk):
         post.delete()
         return Response(status=204)
         
-    
-    
-    
-    
-    
-    
     
 
 def post_details(request, id):

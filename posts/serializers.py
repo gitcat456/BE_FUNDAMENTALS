@@ -74,8 +74,8 @@ class PostSerializer(serializers.ModelSerializer):
     
     #using source..Access nested attributes, rename fields
     post_title = serializers.CharField(source='title')
-    tag_count = serializers.IntegerField(source='tags.count', read_only=True)
-    comments = serializers.IntegerField(source='comments.count', read_only=True)
+    tag_count = serializers.IntegerField(read_only=True) #optimization to prevent N+1 query
+    comments = serializers.IntegerField(source='comments_count', read_only=True)
     #author_name = serializers.CharField(source='author.name', read_only=True)
     
     class Meta:

@@ -44,12 +44,14 @@ INSTALLED_APPS = [
     'ecom',
     'revamp',
     'lib',
+    'debug_toolbar',
 ]
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -93,6 +95,7 @@ DATABASES = {
     }
 }
 
+INTERNAL_IPS = ['127.0.0.1']
 
 # Password validation
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators

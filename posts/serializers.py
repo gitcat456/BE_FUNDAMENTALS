@@ -28,8 +28,16 @@ class CommentSerializer(serializers.ModelSerializer):
         model = Comment
         fields = ['id', 'content', 'post', 'author', 'likes']
         
+class ListPostSerializer(serializers.ModelSerializer):
+    author_id = serializers.CharField(source='author.id', read_only=True)
+    comment_count = serializers.IntegerField(source='comments_count', read_only=True)
+    
+    class Meta:
+        model = Posts
+        fields =['id', 'title', 'author_id', 'comment_count']
         
-class PostSerializer(serializers.ModelSerializer):
+        
+class PostSerializer(ListPostSerializer):
     
     # PrimaryKeyRelatedField (for write support)
     # tags = serializers.PrimaryKeyRelatedField(
@@ -78,9 +86,9 @@ class PostSerializer(serializers.ModelSerializer):
     comments = serializers.IntegerField(source='comments_count', read_only=True)
     #author_name = serializers.CharField(source='author.name', read_only=True)
     
-    class Meta:
+    class Meta(ListPostSerializer.Meta):
         model = Posts
-        fields = ['id', 'uuid', 'post_title', 'content', 'word_count', 'author', 'comments',  'likes', 'tag_count', 'tags']
+        fields = ListPostSerializer.Meta.fields + ['uuid', 'post_title', 'content', 'word_count', 'author', 'comments',  'likes', 'tag_count', 'tags']
         
     def get_word_count(self, obj):
         return len(obj.content.split())
@@ -113,13 +121,9 @@ class PostSerializer(serializers.ModelSerializer):
            
         return post
     
-class ListPostSerializer(serializers.ModelSerializer):
-    author_id = serializers.CharField(source='author.id', read_only=True)
-    comment_count = serializers.IntegerField(source='comments_count', read_only=True)
-    
-    class Meta:
-        model = Posts
-        fields =['id', 'title', 'author_id', 'comment_count']
+
+        
+
     
 
         

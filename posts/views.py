@@ -10,12 +10,19 @@ from rest_framework.decorators import api_view, action
 from rest_framework.response import Response
 import datetime
 from django.utils import timezone
+from django.db.models import Count
 
 @api_view(["GET", "POST"])
 def post_list_create(request):
     
     if request.method == "GET":
-        posts = Posts.objects.select_related('author').prefetch_related('tags')
+        posts = (Posts.objects
+                 .select_related('author')
+                 .prefetch_related('tags')
+                 .annotate(
+                    comments_count=Count('comments'),
+                    tag_count=Count('tags')
+                ))
         serializer = PostSerializer(posts, many=True)
         return Response(serializer.data)
     

@@ -15,7 +15,7 @@ from django.utils import timezone
 def post_list_create(request):
     
     if request.method == "GET":
-        posts = Posts.objects.select_related('author').all()
+        posts = Posts.objects.select_related('author').prefetch_related('tags')
         serializer = PostSerializer(posts, many=True)
         return Response(serializer.data)
     

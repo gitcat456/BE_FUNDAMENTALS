@@ -46,7 +46,12 @@ def post_list_create(request):
     
 @api_view(["GET"])   
 def post_list(request):
-    post = Posts.objects.all()
+    post = (Posts.objects
+          .select_related('author')
+          .annotate(
+            comments_count=Count('comments'),
+          )
+    )
     serializer = ListPostSerializer(post, many=True)
     return Response(serializer.data)
     

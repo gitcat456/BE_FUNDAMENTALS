@@ -22,7 +22,7 @@ def post_list_create(request):
                  .annotate(
                     comments_count=Count('comments'),
                     tag_count=Count('tags')
-                ))
+                )[:5])
         serializer = PostSerializer(posts, many=True)
         return Response(serializer.data)
     
@@ -59,7 +59,7 @@ def post_list(request):
 @api_view(["GET","PATCH", "DELETE"])
 def post_detail(request, pk):
     
-    post = get_object_or_404(Posts.objects.select_related('author'), pk=pk)
+    post = get_object_or_404(Posts.objects.select_related('author').prefetch_related('tags'), pk=pk)
     
     if request.method == "GET":
         serializer = PostSerializer(post)
@@ -156,13 +156,13 @@ class TagViewSet(viewsets.ModelViewSet):
 
 #GET comments/{id}/post_comments
 class CommentViewSet(viewsets.ModelViewSet):
-    queryset = Comment.objects.all()
+    queryset = Comment.objects.select_related('author', 'post')
     serializer_class = CommentSerializer
     
     @action(detail=True, methods=['get'])
     def post_comments(self, request, pk=None):
-        post = Posts.objects.get(pk=pk)
-        comments = post.comments.all()
+        comments = Comment.objects.filter(post_id=pk)\
+                              .select_related('author', 'post')
         serializer = self.get_serializer(comments, many=True)
         return Response(serializer.data)
     

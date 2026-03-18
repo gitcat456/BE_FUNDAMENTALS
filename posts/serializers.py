@@ -16,17 +16,7 @@ class AuthorSerializer(serializers.ModelSerializer):
         read_only_fields = ['slug', 'id']
 
 
-class CommentSerializer(serializers.ModelSerializer):
 
-    post = serializers.PrimaryKeyRelatedField(
-        queryset = Posts.objects.all()
-    )
-    author = serializers.PrimaryKeyRelatedField(
-        queryset = Author.objects.all()
-    )
-    class Meta:
-        model = Comment
-        fields = ['id', 'content', 'post', 'author', 'likes']
         
 class ListPostSerializer(serializers.ModelSerializer):
     author_id = serializers.CharField(source='author.id', read_only=True)
@@ -123,7 +113,17 @@ class PostSerializer(ListPostSerializer):
     
 
         
-
+class CommentSerializer(serializers.ModelSerializer):
+     
+    post = serializers.PrimaryKeyRelatedField(
+        queryset = Posts.objects.all()
+    )
+    author = serializers.PrimaryKeyRelatedField(
+        queryset = Author.objects.all()
+    )
+    class Meta:
+        model = Comment
+        fields = ['id', 'content', 'post', 'author', 'likes']
     
 
         

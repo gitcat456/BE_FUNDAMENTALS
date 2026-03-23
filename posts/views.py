@@ -156,13 +156,13 @@ class TagViewSet(viewsets.ModelViewSet):
 
 #GET comments/{id}/post_comments
 class CommentViewSet(viewsets.ModelViewSet):
-    queryset = Comment.objects.select_related('author', 'post')
+    queryset = Comment.objects.all()
     serializer_class = CommentSerializer
     
     @action(detail=True, methods=['get'])
     def post_comments(self, request, pk=None):
-        comments = Comment.objects.filter(post_id=pk)\
-                              .select_related('author', 'post')
+        post = Posts.objects.get(pk=pk)
+        comments = post.comments.select_related('author', 'post')
         serializer = self.get_serializer(comments, many=True)
         return Response(serializer.data)
     

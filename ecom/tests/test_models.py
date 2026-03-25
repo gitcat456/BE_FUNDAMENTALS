@@ -47,3 +47,36 @@ def test_order_can_have_multiple_items():
     items = list(order.items.all())
     assert items[0].product == product1
     assert items[1].product == product2
+    
+    
+
+@pytest.mark.django_db
+class TestProductModel:
+    """All tests for Product model"""
+    
+    def test_create_product(self):
+        """Test creating a product"""
+        product = Product.objects.create(
+            name="Laptop",
+            price=999.99,
+            stock=10
+        )
+        assert product.name == "Laptop"
+    
+    def test_product_price_is_positive(self):
+        """Test product price must be positive"""
+        product = Product.objects.create(
+            name="Laptop",
+            price=999.99,
+            stock=10
+        )
+        assert product.price > 0
+    
+    def test_product_has_stock(self):
+        """Test product stock tracking"""
+        product = Product.objects.create(
+            name="Laptop",
+            price=999.99,
+            stock=5
+        )
+        assert product.stock == 5

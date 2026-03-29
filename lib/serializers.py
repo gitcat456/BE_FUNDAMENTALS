@@ -63,6 +63,8 @@ class LoanCreateSerializer(serializers.ModelSerializer):
         return value
     
     def validate_book_isbns(self, value):
+        if not value:
+            raise serializers.ValidationError("Loan must contain at least one book!!")
         for isbn in value:
             if not Book.objects.filter(isbn=isbn).exists():
                 raise serializers.ValidationError("The book with the isbn entered does not exist!")

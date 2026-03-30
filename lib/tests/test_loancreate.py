@@ -51,5 +51,29 @@ class TestLoanCreateSerializerCreate:
           assert book1 in loan_books
           assert book2 in loan_books
             
-          
-          
+    def test_create_reduces_available_copies(self):
+        
+         member = Member.objects.create(
+            name="John Doe",
+            email="john@example.com"
+         )
+        
+         book = Book.objects.create(
+            title="Book 1",
+            author="Author 1",
+            isbn="111",
+            available_copies=5
+          )
+         
+         data = {
+            "member_email": "john@example.com",
+            "due_date": str(date.today() + timedelta(days=14)),
+            "book_isbns": [book.isbn]
+         }
+         
+         serializer = LoanCreateSerializer(data=data)
+         assert serializer.is_valid() is True
+         loan = serializer.save()
+         
+         book.refresh_from_db()
+         assert book.available_copies == 4

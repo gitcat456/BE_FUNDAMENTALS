@@ -99,4 +99,28 @@ class TestOrderCreateView:
         data = response.json()
         
         assert "customer_email" in data
+ 
+@pytest.mark.django_db       
+class TestOrderDetailView:
+    
+    """Test GET /api/orders/{id}/"""
+    def test_get_order_success(self):
         
+        order = Order.objects.create(
+            customer_email="test@example.com",
+            status="pending"
+        )
+        
+        client = Client()
+        response = client.get(f'/api/orders/{order.id}/')
+        
+        assert response.status_code == 200
+        assert response.json()['id'] == order.id
+        assert response.json()['customer_email'] == "test@example.com"
+        
+    def test_order_not_found(self):
+        
+        client = Client()
+        response = client.get('/api/orders/999/')
+        
+        assert response.status_code == 404

@@ -124,3 +124,28 @@ class TestOrderDetailView:
         response = client.get('/api/orders/999/')
         
         assert response.status_code == 404
+        
+@pytest.mark.django_db
+class TestOrderUpdateView:
+    """Test PUT/PATCH /api/orders/{id}/"""
+    
+    def test_update_order_status(self):
+        """Test updating order status"""
+        
+        order = Order.objects.create(
+            customer_email="test@example.com",
+            status="pending"
+        )
+        
+        data = {
+            "status": "shipped"
+        }
+        
+        client=Client()
+        response = client.patch(f'/api/orders/{order.id}/', data=data, content_type="application/json")
+        
+        assert response.status_code == 200
+        assert response.json()['status'] == "shipped"
+        
+        order.refresh_from_db()
+        assert order.status == "shipped"

@@ -60,6 +60,43 @@ class TestOrderCreateView:
         assert response.status_code == 201
         # ASSERT: Order created in database
         assert Order.objects.count() == 1
-     
         
+    def test_order_create_invalid_data(self):
+        
+        prod = Product.objects.create(
+            name="Mouse",
+            price=Decimal('25.00'),
+            stock=50
+        )
+        
+        data = {
+            "customer_email": "test@example.com",
+            "items": []
+        }
+        
+        client = Client()
+        response = client.post('/api/order_create/', data=data, content_type="application/json")
+        
+        assert response.status_code == 400
+        assert Order.objects.count() == 0
+        assert "items" in response.json()
+     
+    def test_create_order_missing_fields(self):
+        
+        prod = Product.objects.create(
+            name="Mouse",
+            price=Decimal('25.00'),
+            stock=50
+        )
+        
+        data = {
+            "items": [{"product_id": prod.id, "quantity": 2}]
+        }
+        
+        client = Client()
+        response = client.post('/api/order_create/', data=data, content_type="application/json")
+        
+        data = response.json()
+        
+        assert "customer_email" in data
         

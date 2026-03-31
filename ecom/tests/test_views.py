@@ -149,3 +149,28 @@ class TestOrderUpdateView:
         
         order.refresh_from_db()
         assert order.status == "shipped"
+        
+@pytest.mark.django_db
+class TestOrderDeleteView:
+    """Test DELETE /api/orders/{id}/"""
+    
+    def test_delete_order(self):
+        
+        order1 = Order.objects.create(
+            customer_email="test@example.com",
+            status="paid"
+        )
+        
+        order2 = Order.objects.create(
+            customer_email="test@example.com",
+            status="shipped"
+        )
+        
+        client = Client()
+        response = client.delete(f'/api/orders/{order2.id}/')
+        
+        assert response.status_code == 204
+        assert Order.objects.count() == 1
+        
+        
+        

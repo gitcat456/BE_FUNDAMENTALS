@@ -1,11 +1,10 @@
 import pytest 
 from django.test import Client
-from ecom.models import Product
+from ecom.models import Product, Order
 from decimal import Decimal
 
 @pytest.mark.django_db
 class TestProductListView:
-    
        def test_list_products_success(self):
            
         """Test listing products returns 200"""
@@ -35,5 +34,32 @@ class TestProductListView:
         assert len(data) == 2
         assert data[0]['name'] == "Laptop"
         assert data[1]['stock'] == 50
+        
+        
+        
+@pytest.mark.django_db
+class TestOrderCreateView:
+    
+    def test_create_order_success(self):
+        """Test creating order with valid data return 201"""
+        
+        prod = Product.objects.create(
+            name="Mouse",
+            price=Decimal('25.00'),
+            stock=50
+        )
+        
+        data = {
+            "customer_email": "test@example.com",
+            "items": [{"product_id": prod.id, "quantity": 2}]
+        }
+        
+        client = Client()
+        response = client.post('/api/order_create/', data=data, content_type = "application/json")
+        
+        assert response.status_code == 201
+        # ASSERT: Order created in database
+        assert Order.objects.count() == 1
+     
         
         

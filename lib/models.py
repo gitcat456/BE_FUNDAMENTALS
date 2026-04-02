@@ -1,5 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+import secrets
+from django.conf import settings
 
 class User(AbstractUser):
     """Cusom User Model"""
@@ -8,6 +10,30 @@ class User(AbstractUser):
     
     def __str__(self):
         return self.username
+    
+
+class AuthToken(models.Model):
+
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='auth_token'
+    )
+    key = models.CharField(max_length=40, unique=True, db_index=True)
+    created = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        return f"Token for {self.user.username}"
+    
+    @staticmethod
+    def generate_key():
+        """Generate a random 40-character token"""
+        return secrets.token_hex(20)  # 20 bytes = 40 hex chars
+    
+    def save(self, *args, **kwargs):
+        if not self.key:
+            self.key = self.generate_key()
+        return super().save(*args, **kwargs)
 
 class Book(models.Model):
     title = models.CharField(max_length=200)

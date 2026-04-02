@@ -16,6 +16,84 @@ from django.views.decorators.http import require_http_methods
 import json
 from .models import User
 
+
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.response import Response
+from rest_framework import status
+from django.contrib.auth import authenticate
+from .models import AuthToken
+from .authentication import TokenAuthentication
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def token_login_view(request):
+    
+    username = request.data.get('username')
+    password = request.data.get('password')
+    
+    if not username or not password:
+        return Response({
+            'error': 'Username and password required'
+        }, status=status.HTTP_400_BAD_REQUEST)
+    
+    # Authenticate user
+    user = authenticate(username=username, password=password)
+    
+    if user is None:
+        return Response({
+            'error': 'Invalid credentials'
+        }, status=status.HTTP_401_UNAUTHORIZED)
+    
+    # Get or create token
+    token, created = AuthToken.objects.get_or_create(user=user)
+    
+    return Response({
+        'token': token.key,
+        'user': {
+            'id': user.id,
+            'username': user.username,
+            'email': user.email
+        }
+    }, status=status.HTTP_200_OK)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def token_logout_view(request):
+    """
+    Logout by deleting token
+    
+    Requires: Authorization: Token abc123
+    """
+    # Delete user's token
+    try:
+        request.user.auth_token.delete()
+    except AuthToken.DoesNotExist:
+        pass
+    
+    return Response({
+        'message': 'Logged out successfully'
+    }, status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def token_me_view(request):
+    """
+    Get current user info
+    
+    Requires: Authorization: Token abc123
+    """
+    return Response({
+        'id': request.user.id,
+        'username': request.user.username,
+        'email': request.user.email
+    })
+
+
+#Sessions authentication
 @csrf_exempt
 @require_http_methods(["POST"])
 def register_view(request):
@@ -125,7 +203,8 @@ def me_view(request):
         'username': request.user.username,
         'email': request.user.email
     })
-
+    
+@permission_classes([IsAuthenticated])
 class BookViewSet(viewsets.ModelViewSet):
     queryset = Book.objects.all()
     serializer_class = BookSerializer

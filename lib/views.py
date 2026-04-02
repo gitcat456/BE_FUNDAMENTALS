@@ -9,6 +9,7 @@ from .serializers import (
     MemberSerializer ) 
 from django.contrib.auth import authenticate, login, logout
 from django.http import JsonResponse
+from json.decoder import JSONDecodeError
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 import json
@@ -19,6 +20,20 @@ from .models import User
 def register_view(request):
     """Register a new user"""
     data = json.loads(request.body)
+    
+    if not request.body:
+        return JsonResponse({
+            'error': 'Request body is empty!'
+        }, status=400)
+        
+    # Handle invalid JSON
+    try:
+        data = json.loads(request.body)
+    except JSONDecodeError:
+        return JsonResponse(
+            {'error': 'Invalid JSON format'}, 
+            status=400
+        )
     
     username = data.get('username')
     email = data.get('email')

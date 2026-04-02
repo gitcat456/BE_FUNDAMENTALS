@@ -10,8 +10,15 @@ router.register(r'member', MemberViewSet)
 
 urlpatterns = [
     path('', include(router.urls)),
+    
+    #Session auth (Day 1)
     path('auth/register/', views.register_view),
     path('auth/login/', views.login_view),
     path('auth/logout/', views.logout_view),
     path('auth/me/', views.me_view),
+    
+    # Token auth (Day 2)
+    path('auth/token-login/', views.token_login_view),
+    path('auth/token-logout/', views.token_logout_view),
+    path('auth/token-me/', views.token_me_view),
 ]

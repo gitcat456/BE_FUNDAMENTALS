@@ -128,6 +128,16 @@ REST_FRAMEWORK = {
     )
 }
 
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'lib.authentication.TokenAuthentication',  # Your custom token auth
+        'rest_framework.authentication.SessionAuthentication',  # Keep session for browsable API
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ],
+}
+
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,

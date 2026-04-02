@@ -7,6 +7,7 @@ from .serializers import (
     LoanDetailSerializer,
     LoanCreateSerializer,
     MemberSerializer ) 
+
 from django.contrib.auth import authenticate, login, logout
 from django.http import JsonResponse
 from json.decoder import JSONDecodeError
@@ -19,7 +20,6 @@ from .models import User
 @require_http_methods(["POST"])
 def register_view(request):
     """Register a new user"""
-    data = json.loads(request.body)
     
     if not request.body:
         return JsonResponse({
@@ -68,6 +68,12 @@ def register_view(request):
 @csrf_exempt
 @require_http_methods(["POST"])
 def login_view(request):
+    
+    if not request.body:
+        return JsonResponse({
+            'error': 'the request body is empty!'
+        }, status=400)
+    
     """Login user with session"""
     data = json.loads(request.body)
     
@@ -85,8 +91,12 @@ def login_view(request):
     # Create session in the db for an authenticated user 
     login(request, user)
     
+    # Get session ID from the cookie that was just set
+    session_id = request.session.session_key
+    
     return JsonResponse({
         'message': 'Login successful',
+        'session_id': session_id,
         'user': {
             'id': user.id,
             'username': user.username,
@@ -94,7 +104,7 @@ def login_view(request):
         }
     })
 
-
+@csrf_exempt
 @require_http_methods(["POST"])
 def logout_view(request):
     """Destroy the user session"""

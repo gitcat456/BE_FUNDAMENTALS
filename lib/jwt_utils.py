@@ -8,14 +8,15 @@ def generate_jwt(user):
     payload = {
         "user_id": user.id,
         "username": user.username,
-        "exp":  datetime.now(timezone.utc) + timedelta(hours=1)    
+        "exp":  datetime.now(timezone.utc) + timedelta(hours=1),
+        "iat": datetime.now(timezone.utc)  
     }
     
     jwt = pyjwt.encode(payload, settings.SECRET_KEY, algorithm="HS256")
     
     return jwt
 
-def verify_jwt(token):
+def verify_jwt(token):  
     
     try:
         payload = pyjwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])

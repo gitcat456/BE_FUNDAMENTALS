@@ -24,7 +24,40 @@ from rest_framework import status
 from django.contrib.auth import authenticate
 from .models import AuthToken
 from .authentication import TokenAuthentication
+from .jwt_utils import generate_jwt
 
+#jwt login view
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def jwt_login_view(request):
+    
+    if not request.body or request.body == {}:
+        return Response({
+            "message": "Request body cannot be empty"
+        }, status = 400)
+        
+    username = request.data.get('username')
+    password = request.data.get('password')
+    
+    if not username or not password:
+        return Response({
+            'error': 'Username and password required'
+        }, status=400)
+        
+    user = authenticate(username=username, password=password)
+    
+    if user is None:
+        return Response({
+            "message": "Invalid credentials"
+        }, status=400)
+    
+    token = generate_jwt(user)
+        
+    return Response({
+        "jwt": token,
+    },status=200)
+    
+    
 
 @api_view(['POST'])
 @permission_classes([AllowAny])

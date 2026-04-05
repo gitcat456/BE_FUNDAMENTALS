@@ -5,18 +5,34 @@ from django.contrib.auth import get_user_model
 User = get_user_model()
 
 class JWTAuthentication(authentication.BaseAuthentication):
+    
+    """
+    JWT authentication backend
+    
+    Clients authenticate by passing JWT in Authorization header:
+    Authorization: Bearer <token>
+    """
+    
     keyword = 'Bearer'
     
     def authenticate(self, request):
+        
+        """
+        Authenticate request using JWT
+        Returns (user, None) if valid, None if no auth attempted
+        """
+      
         auth_header = request.headers.get('Authorization')
+        
         if not auth_header:
             return None 
-
+        
+        # Check if Bearer token
         if not auth_header.startswith(f'{self.keyword} '):
             return None 
 
         #Extract token
-        token = auth_header[len(self.keyword)+1:]  # skip "Bearer "
+        token = auth_header.split(' ')[1] # skip "Bearer "
 
         #Verify JWT
         try:

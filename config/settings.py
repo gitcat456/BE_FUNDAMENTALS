@@ -133,9 +133,9 @@ REST_FRAMEWORK = {
         'lib.authentication.TokenAuthentication',  # Your custom token auth
         'rest_framework.authentication.SessionAuthentication',  # Keep session for browsable API
     ],
-    'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.IsAuthenticated',
-    ],
+    # 'DEFAULT_PERMISSION_CLASSES': [
+    #     'rest_framework.permissions.IsAuthenticated',
+    # ],
 }
 
 LOGGING = {

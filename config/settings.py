@@ -130,6 +130,7 @@ REST_FRAMEWORK = {
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
+        'lib.jwt_authentication.JWTAuthentication',
         'lib.authentication.TokenAuthentication',  # Your custom token auth
         'rest_framework.authentication.SessionAuthentication',  # Keep session for browsable API
     ],

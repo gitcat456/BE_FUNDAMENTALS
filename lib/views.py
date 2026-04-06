@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from rest_framework import viewsets
 from .models import Book, Loan, Member
+from rest_framework import exceptions
 from .serializers import (
     BookSerializer,
     LoanListSerializer,
@@ -25,6 +26,9 @@ from django.contrib.auth import authenticate
 from .models import AuthToken
 from .authentication import TokenAuthentication
 from .jwt_utils import generate_jwt
+from .refresh_utils import create_refresh_token
+from .refresh_utils import rotate_refresh_token
+from .refresh_utils import revoke_all_user_tokens
 
 #jwt login view
 @api_view(['POST'])
@@ -51,13 +55,80 @@ def jwt_login_view(request):
             "message": "Invalid credentials"
         }, status=400)
     
-    token = generate_jwt(user)
+    access_token = generate_jwt(user)
+    refresh_token = create_refresh_token(user)
         
     return Response({
-        "jwt": token,
+        "accessToken": access_token,
+        "refreshToken": refresh_token.token
     },status=200)
     
     
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def jwt_refresh_view(request):
+    """
+    Refresh access token using refresh token
+    
+    POST /api/auth/jwt-refresh/
+    {
+        "refresh": "a1b2c3d4..."
+    }
+    
+    Response:
+    {
+        "access": "eyJhbG...",  // NEW access token
+        "refresh": "e5f6g7..."  // NEW refresh token (rotation)
+    }
+    """
+    refresh_token_string = request.data.get('refresh')
+    
+    if not refresh_token_string:
+        raise exceptions.AuthenticationFailed("Refresh Token Not Found!")
+        
+    
+    try:
+        # TODO: Rotate refresh token (invalidate old, get new)
+        new_refresh_token = rotate_refresh_token(refresh_token_string)
+        
+        # TODO: Generate new access token for the user
+        new_access_token = generate_jwt(new_refresh_token.user)
+        
+        # TODO: Return both new tokens
+        return Response({
+            'access': new_access_token,
+            'refresh': new_refresh_token.token
+        }, status=200)
+        
+    except exceptions.AuthenticationFailed as e:
+        return Response({
+            'error': str(e)
+        }, status=401)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def jwt_logout_view(request):
+    """
+    Logout by revoking all refresh tokens
+    
+    Requires: Authorization: Bearer <access_token>
+    
+    POST /api/auth/jwt-logout/
+    
+    Response:
+    {
+        "message": "Logged out from all devices"
+    }
+    """
+    # TODO: Revoke all refresh tokens for current user
+    revoke_all_user_tokens(request.user)
+    
+    return Response({
+        'message': 'Logged out from all devices'
+    }, status=200)
 
 @api_view(['POST'])
 @permission_classes([AllowAny])

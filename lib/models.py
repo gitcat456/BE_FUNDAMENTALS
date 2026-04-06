@@ -2,6 +2,8 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 import secrets
 from django.conf import settings
+import secrets
+from datetime import datetime, timedelta, timezone 
 
 class User(AbstractUser):
     """Cusom User Model"""
@@ -43,6 +45,30 @@ class Book(models.Model):
     
     def __str__(self):
         return f"{self.title}"
+    
+class RefreshToken(models.Model):
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='refresh_tokens'
+    )
+    token = models.CharField(max_length=64, unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()
+    revoked = models.BooleanField(default=False)
+    
+    @staticmethod
+    def generate_token():
+        return secrets.token_hex(32)
+    
+    def is_expired(self):
+     return self.expires_at < timezone.now()
+    
+    def is_valid(self):
+     return not self.is_expired() and not self.revoked
+    
+    def __str__(self):
+        return f"RefreshToken for {self.user.username}"
     
 class Member(models.Model):
     name = models.CharField(max_length=100)

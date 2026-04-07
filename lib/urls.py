@@ -19,9 +19,11 @@ urlpatterns = [
     
     # Token auth (Day 2)
     path('auth/token-login/', views.token_login_view),
-    path('auth/token-logout/', vurls.piews.token_logout_view),
+    path('auth/token-logout/', views.token_logout_view),
     path('auth/token-me/', views.token_me_view),
     
     #jwt auth(Day 5)
     path('auth/jwt-login/', views.jwt_login_view),
+    path('auth/jwt-refresh/', views.jwt_refresh_view),
+    path('auth/jwt-logout/', views.jwt_logout_view)
 ]

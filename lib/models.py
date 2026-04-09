@@ -7,8 +7,25 @@ from datetime import datetime, timedelta, timezone
 
 class User(AbstractUser):
     """Cusom User Model"""
+    ROLE_CHOICES = [
+        ('admin', 'Admin'),
+        ('librarian', 'Librarian'),
+        ('member', 'Member'),
+        ('customer', 'Customer')
+    ]
     
     phone = models.CharField(max_length=15, blank=True)
+    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='member')
+    
+    #helper methods
+    def is_admin(self):
+        return self.role == 'admin'
+    
+    def is_librarian(self):
+        return self.role == 'librarian'
+    
+    def can_manage_books(self):
+        return self.is_admin() or self.is_librarian()
     
     def __str__(self):
         return self.username

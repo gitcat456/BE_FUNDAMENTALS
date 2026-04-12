@@ -12,6 +12,7 @@ urlpatterns = [
     path('', include(router.urls)),
     path('list/', views.book_list_view),
     path('create/', views.create_book),
+    path('del/<int:pk>/', views.book_delete_view),
     
     #Session auth (Day 1)
     path('auth/register/', views.register_view),

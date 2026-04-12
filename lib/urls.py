@@ -10,6 +10,8 @@ router.register(r'member', MemberViewSet)
 
 urlpatterns = [
     path('', include(router.urls)),
+    path('list/', views.book_list_view),
+    path('create/', views.create_book),
     
     #Session auth (Day 1)
     path('auth/register/', views.register_view),

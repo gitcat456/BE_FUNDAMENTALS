@@ -29,6 +29,8 @@ from .jwt_utils import generate_jwt
 from .refresh_utils import create_refresh_token
 from .refresh_utils import rotate_refresh_token
 from .refresh_utils import revoke_all_user_tokens
+from .permissions import IsLibrarian, IsAdminOrReadOnly 
+
 
 #jwt login view
 @api_view(['POST'])
@@ -328,6 +330,25 @@ class LoanViewSet(viewsets.ModelViewSet):
         elif self.action == 'create':
             return LoanCreateSerializer
         return LoanListSerializer
+    
+    
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def book_list_view(request):
+    books = Book.objects.all()    
+    serializer = BookSerializer(books, many=True)
+    return Response(serializer.data)
+
+@api_view(["POST"])
+@permission_classes([IsLibrarian])
+def create_book(request):
+    serializer = BookSerializer(data=request.data)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data, status=201)
+    return Response(serializer.errors, status=400)
+       
+    
         
     
     

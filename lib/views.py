@@ -347,6 +347,18 @@ def create_book(request):
         serializer.save()
         return Response(serializer.data, status=201)
     return Response(serializer.errors, status=400)
+
+
+@api_view(['DELETE'])
+@permission_classes([IsLibrarian])  # Only librarians can delete books
+def book_delete_view(request, pk):
+    """Delete a book (librarians only)"""
+    try:
+        book = Book.objects.get(pk=pk)
+        book.delete()
+        return Response(status=204)
+    except Book.DoesNotExist:
+        return Response({'error': 'Book not found'}, status=404)
        
     
         

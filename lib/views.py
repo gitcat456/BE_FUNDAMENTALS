@@ -1,13 +1,13 @@
 from django.shortcuts import render
 from rest_framework import viewsets
-from .models import Book, Loan, Member
+from .models import Book, Loan
 from rest_framework import exceptions
 from .serializers import (
     BookSerializer,
     LoanListSerializer,
     LoanDetailSerializer,
     LoanCreateSerializer,
-    MemberSerializer ) 
+     ) 
 
 from django.contrib.auth import authenticate, login, logout
 from django.http import JsonResponse
@@ -315,9 +315,9 @@ class BookViewSet(viewsets.ModelViewSet):
     queryset = Book.objects.all()
     serializer_class = BookSerializer
     
-class MemberViewSet(viewsets.ModelViewSet):
-    queryset = Member.objects.all()
-    serializer_class = MemberSerializer
+# class MemberViewSet(viewsets.ModelViewSet):
+#     queryset = Member.objects.all()
+#     serializer_class = MemberSerializer
     
 class LoanViewSet(viewsets.ModelViewSet):
     queryset = Loan.objects.all()
@@ -360,6 +360,21 @@ def book_delete_view(request, pk):
     except Book.DoesNotExist:
         return Response({'error': 'Book not found'}, status=404)
        
+       
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def loan_list_view(request):
+    
+    user = request.user
+    
+    if user.is_librarian() or user.is_admin():
+         loans = Loan.objects.all()
+    else:
+       loans = Loan.objects.filter(borrower=user)
+       
+    serializer = LoanListSerializer(loans, many=True)
+    return Response(serializer.data)
     
         
     

@@ -1,18 +1,19 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter 
-from .views import BookViewSet, LoanViewSet, MemberViewSet
+from .views import BookViewSet, LoanViewSet
 from . import views
 
 router = DefaultRouter()
 router.register(r'books', BookViewSet)
 router.register(r'loans', LoanViewSet)
-router.register(r'member', MemberViewSet)
+
 
 urlpatterns = [
     path('', include(router.urls)),
     path('list/', views.book_list_view),
     path('create/', views.create_book),
     path('del/<int:pk>/', views.book_delete_view),
+    path('loan-list/', views.loan_list_view),
     
     #Session auth (Day 1)
     path('auth/register/', views.register_view),

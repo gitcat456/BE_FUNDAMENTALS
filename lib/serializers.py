@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Book, Member, LoanItem, Loan
+from .models import Book, LoanItem, Loan, User
 from django.db import transaction
 from django.shortcuts import get_object_or_404
 
@@ -8,19 +8,19 @@ class BookSerializer(serializers.ModelSerializer):
         model = Book
         fields = '__all__'
 
-class MemberSerializer(serializers.ModelSerializer):
-    class Meta:
-         model = Member
-         fields = '__all__'
+# class MemberSerializer(serializers.ModelSerializer):
+#     class Meta:
+#          model = Member
+#          fields = '__all__'
 
 class LoanListSerializer(serializers.ModelSerializer):
     
-    member_name = serializers.CharField(source='member.name', read_only=True)
+    borrower_name = serializers.CharField(source='user.name', read_only=True)
     total_books = serializers.SerializerMethodField()
     
     class Meta:
         model = Loan
-        fields = ['id', 'member_name', 'borrowed_date', 'due_date', 'status', 'total_books']
+        fields = ['id', 'borrower_name', 'borrowed_date', 'due_date', 'status', 'total_books']
         
     def get_total_books(self, obj):
         return obj.items.count()
@@ -47,7 +47,7 @@ class LoanDetailSerializer(LoanListSerializer):
 @transaction.atomic       
 class LoanCreateSerializer(serializers.ModelSerializer):
     
-    member_email = serializers.EmailField(write_only=True)
+    borrower_email = serializers.EmailField(write_only=True)
     book_isbns = serializers.ListField(
         child=serializers.CharField(),
         write_only=True
@@ -55,10 +55,10 @@ class LoanCreateSerializer(serializers.ModelSerializer):
   
     class Meta:
         model = Loan
-        fields = ['member_email', 'due_date', 'book_isbns']
+        fields = ['borrower_email', 'due_date', 'book_isbns']
         
-    def validate_member_email(self, value):
-        if not Member.objects.filter(email=value).exists():
+    def validate_borrower_email(self, value):
+        if not User.objects.filter(email=value).exists():
             raise serializers.ValidationError("No user associated with this email!")
         return value
     
@@ -75,10 +75,10 @@ class LoanCreateSerializer(serializers.ModelSerializer):
        isbns = validated_data.pop('book_isbns')
        
     # Get member
-       member = Member.objects.get(email=email)
+       borrower = User.objects.get(email=email)
        
        loan = Loan.objects.create(
-            member=member,
+            borrower=borrower,
             **validated_data    #only contains due date right now 
         )
         

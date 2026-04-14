@@ -87,13 +87,13 @@ class RefreshToken(models.Model):
     def __str__(self):
         return f"RefreshToken for {self.user.username}"
     
-class Member(models.Model):
-    name = models.CharField(max_length=100)
-    email = models.EmailField(unique=True)
-    membership_active = models.BooleanField(default=True)
+# class Member(models.Model):
+#     name = models.CharField(max_length=100)
+#     email = models.EmailField(unique=True)
+#     membership_active = models.BooleanField(default=True)
     
 class Loan(models.Model):
-    member = models.ForeignKey(Member, related_name='loans', on_delete=models.CASCADE)
+    borrower = models.ForeignKey(User, related_name='loans', on_delete=models.CASCADE, null=True)
     borrowed_date = models.DateTimeField(auto_now_add=True)
     due_date = models.DateField()
     status = models.CharField(

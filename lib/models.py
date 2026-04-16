@@ -3,7 +3,7 @@ from django.contrib.auth.models import AbstractUser
 import secrets
 from django.conf import settings
 import secrets
-from datetime import datetime, timedelta, timezone 
+from django.utils import timezone 
 
 class User(AbstractUser):
     """Cusom User Model"""

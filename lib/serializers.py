@@ -71,7 +71,7 @@ class LoanCreateSerializer(serializers.ModelSerializer):
             return value
         
     def create(self, validated_data):   #validated_data is just a Python dictionary of cleaned input data.
-       email = validated_data.pop('member_email')  #extract these fields form the cleaned input
+       email = validated_data.pop('borrower_email')  #extract these fields form the cleaned input
        isbns = validated_data.pop('book_isbns')
        
     # Get member

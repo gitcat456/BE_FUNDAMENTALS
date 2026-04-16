@@ -30,6 +30,7 @@ from .refresh_utils import create_refresh_token
 from .refresh_utils import rotate_refresh_token
 from .refresh_utils import revoke_all_user_tokens
 from .permissions import IsLibrarian, IsAdminOrReadOnly 
+from .permissions import HasBookPermission, CanBanBook
 
 
 #jwt login view
@@ -333,7 +334,7 @@ class LoanViewSet(viewsets.ModelViewSet):
     
     
 @api_view(["GET"])
-@permission_classes([IsAuthenticated])
+#@permission_classes([IsAuthenticated])
 def book_list_view(request):
     books = Book.objects.all()    
     serializer = BookSerializer(books, many=True)
@@ -376,6 +377,41 @@ def loan_list_view(request):
     serializer = LoanListSerializer(loans, many=True)
     return Response(serializer.data)
     
+
+
+#TODO: test taht this works 
+
+@api_view(['GET', 'POST'])
+@permission_classes([HasBookPermission])
+def book_list_create_view(request):
+    """
+    GET: Anyone with view_book permission
+    POST: Anyone with add_book permission
+    """
+    if request.method == 'GET':
+        books = Book.objects.all()
+        serializer = BookSerializer(books, many=True)
+        return Response(serializer.data)
+    
+    elif request.method == 'POST':
+        serializer = BookSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=201)
+        return Response(serializer.errors, status=400)
+
+
+@api_view(['POST'])
+@permission_classes([CanBanBook])
+def ban_book_view(request, pk):
+    """Ban a book (librarians only)"""
+    try:
+        book = Book.objects.get(pk=pk)
+        book.is_banned = True  # You'd add this field to model
+        book.save()
+        return Response({'message': 'Book banned'})
+    except Book.DoesNotExist:
+        return Response({'error': 'Book not found'}, status=404)
         
     
     

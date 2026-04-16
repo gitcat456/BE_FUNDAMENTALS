@@ -60,6 +60,13 @@ class Book(models.Model):
     isbn = models.CharField(max_length=13, unique=True)
     available_copies = models.IntegerField()  # How many can be borrowed
     
+    class Meta:
+        permissions = [
+            ("can_ban_book", "Can ban book from library"),
+            ("can_feature_book", "Can feature book on Homepage"),
+            ("can_bulk_import", "Can bulk import books"),
+        ]
+    
     def __str__(self):
         return f"{self.title}"
     

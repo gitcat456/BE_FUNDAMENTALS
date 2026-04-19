@@ -15,7 +15,7 @@ class BookSerializer(serializers.ModelSerializer):
 
 class LoanListSerializer(serializers.ModelSerializer):
     
-    borrower_name = serializers.CharField(source='user.name', read_only=True)
+    borrower_name = serializers.CharField(source='borrower.username', read_only=True)
     total_books = serializers.SerializerMethodField()
     
     class Meta:

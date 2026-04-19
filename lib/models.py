@@ -2,8 +2,7 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 import secrets
 from django.conf import settings
-import secrets
-from django.utils import timezone 
+from django.utils import timezone
 
 class User(AbstractUser):
     """Cusom User Model"""
@@ -29,6 +28,47 @@ class User(AbstractUser):
     
     def __str__(self):
         return self.username
+    
+
+
+class APIKey(models.Model):
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='api_keys',
+        null=True,
+        blank=True
+    )
+    
+    name = models.CharField(max_length=100, help_text="e.g., Production Server")
+    key = models.CharField(max_length=64, unique=True, db_index=True, blank=True)
+    prefix = models.CharField(max_length=8, blank=True)
+    scopes = models.JSONField(default=list, blank=True)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    last_used_at = models.DateTimeField(null=True, blank=True)
+    expires_at = models.DateTimeField(null=True, blank=True)
+    is_active = models.BooleanField(default=True)
+    
+    @staticmethod
+    def generate_key():
+        return secrets.token_urlsafe(48)
+    
+    def save(self, *args, **kwargs):
+        if not self.key:
+            self.key = self.generate_key()
+            self.prefix = self.key[:8]
+        super().save(*args, **kwargs)
+    
+    def is_valid(self):
+        if not self.is_active:
+            return False
+        if self.expires_at and self.expires_at < timezone.now():
+            return False
+        return True
+    
+    def __str__(self):
+        return f"APIKey {self.prefix}... ({self.name})"
     
 
 class AuthToken(models.Model):

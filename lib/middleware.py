@@ -19,14 +19,14 @@ class RequestLoggerMiddleware:
         
         if request.path == '/':
             if request.user.is_authenticated:
-                
-                if request.user.role == "borrower":
-                    return redirect("/api/posts/")
-                else:
-                    return redirect("api/loan-list/")
-                
+                # Role is on the User model — "borrower" is not a role; member/customer borrow books.
+                if request.user.role in ('member', 'customer'):
+                    return redirect('/api/posts/')
+                if request.user.role in ('admin', 'librarian'):
+                    return redirect('/api/loan-list/')
+                return redirect('/api/posts/')
             else:
-                return redirect("api/auth/jwt-login/")
+                return redirect('/api/auth/jwt-login/')
                     
                  
                 

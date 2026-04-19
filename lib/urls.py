@@ -29,5 +29,11 @@ urlpatterns = [
     #jwt auth(Day 5)
     path('auth/jwt-login/', views.jwt_login_view),
     path('auth/jwt-refresh/', views.jwt_refresh_view),
-    path('auth/jwt-logout/', views.jwt_logout_view)
+    path('auth/jwt-logout/', views.jwt_logout_view),
+    path('auth/profile/', views.profile_view),
+    
+    #apikeys
+    path('api-keys/create/', views.create_api_key_view),
+    path('api-keys/', views.list_api_keys_view),
+    path('api-keys/<int:key_id>/revoke/', views.revoke_api_key_view),
 ]

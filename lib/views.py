@@ -30,7 +30,7 @@ from .refresh_utils import create_refresh_token
 from .refresh_utils import rotate_refresh_token
 from .refresh_utils import revoke_all_user_tokens
 from .permissions import IsLibrarian, IsAdminOrReadOnly 
-from .permissions import HasBookPermission, CanBanBook
+# from .permissions import HasBookPermission, CanBanBook
 
 
 #jwt login view
@@ -65,6 +65,22 @@ def jwt_login_view(request):
         "accessToken": access_token,
         "refreshToken": refresh_token.token
     },status=200)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def profile_view(request):
+    """
+    Current user profile for SPA / JWT clients.
+    Role always comes from the database (not the client).
+    """
+    u = request.user
+    return Response({
+        'id': u.id,
+        'username': u.username,
+        'email': u.email,
+        'role': u.role,
+    })
     
     
 
@@ -370,49 +386,145 @@ def loan_list_view(request):
     user = request.user
     
     if user.is_librarian() or user.is_admin():
-         loans = Loan.objects.all()
+        loans = Loan.objects.all()
     else:
-       loans = Loan.objects.filter(borrower=user)
+        loans = Loan.objects.filter(borrower=user)
        
     serializer = LoanListSerializer(loans, many=True)
     return Response(serializer.data)
     
 
 
-#TODO: test taht this works 
+# #TODO: test taht this works 
 
-@api_view(['GET', 'POST'])
-@permission_classes([HasBookPermission])
-def book_list_create_view(request):
-    """
-    GET: Anyone with view_book permission
-    POST: Anyone with add_book permission
-    """
-    if request.method == 'GET':
-        books = Book.objects.all()
-        serializer = BookSerializer(books, many=True)
-        return Response(serializer.data)
+# @api_view(['GET', 'POST'])
+# @permission_classes([HasBookPermission])
+# def book_list_create_view(request):
+#     """
+#     GET: Anyone with view_book permission
+#     POST: Anyone with add_book permission
+#     """
+#     if request.method == 'GET':
+#         books = Book.objects.all()
+#         serializer = BookSerializer(books, many=True)
+#         return Response(serializer.data)
     
-    elif request.method == 'POST':
-        serializer = BookSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=201)
-        return Response(serializer.errors, status=400)
+#     elif request.method == 'POST':
+#         serializer = BookSerializer(data=request.data)
+#         if serializer.is_valid():
+#             serializer.save()
+#             return Response(serializer.data, status=201)
+#         return Response(serializer.errors, status=400)
 
+
+# @api_view(['POST'])
+# @permission_classes([CanBanBook])
+# def ban_book_view(request, pk):
+#     """Ban a book (librarians only)"""
+#     try:
+#         book = Book.objects.get(pk=pk)
+#         book.is_banned = True  # You'd add this field to model
+#         book.save()
+#         return Response({'message': 'Book banned'})
+#     except Book.DoesNotExist:
+#         return Response({'error': 'Book not found'}, status=404)
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+# API KEY AUTHENTICATION 
+from .models import APIKey
+from rest_framework import status
 
 @api_view(['POST'])
-@permission_classes([CanBanBook])
-def ban_book_view(request, pk):
-    """Ban a book (librarians only)"""
+@permission_classes([IsAuthenticated])
+def create_api_key_view(request):
+    """
+    Create new API key for current user
+    
+    POST /api/keys/create/
+    {
+        "name": "Production Server",
+        "scopes": ["read:books", "write:books"],
+        "expires_in_days": 90  # optional
+    }
+    """
+    name = request.data.get('name')
+    scopes = request.data.get('scopes', [])
+    expires_in_days = request.data.get('expires_in_days')
+    
+    if not name:
+        return Response({'error': 'Name required'}, status=400)
+    
+    # Create API key
+    api_key = APIKey.objects.create(
+        user=request.user,
+        name=name,
+        scopes=scopes,
+    )
+    
+    # Set expiration if provided
+    if expires_in_days:
+        from datetime import timedelta
+        from django.utils import timezone
+        api_key.expires_at = timezone.now() + timedelta(days=expires_in_days)
+        api_key.save()
+    
+    # IMPORTANT: Only show full key on creation
+    return Response({
+        'key': api_key.key,  # Full key (only time you see it)
+        'prefix': api_key.prefix,
+        'name': api_key.name,
+        'created_at': api_key.created_at,
+        'expires_at': api_key.expires_at,
+        'message': 'Save this key! You will not see it again.'
+    }, status=201)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def list_api_keys_view(request):
+    """List user's API keys (without full key)"""
+    keys = request.user.api_keys.all()
+    
+    data = [{
+        'id': key.id,
+        'prefix': key.prefix,  # Only show prefix (not full key)
+        'name': key.name,
+        'is_active': key.is_active,
+        'created_at': key.created_at,
+        'last_used_at': key.last_used_at,
+        'expires_at': key.expires_at,
+    } for key in keys]
+    
+    return Response(data)
+
+
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def revoke_api_key_view(request, key_id):
+    """Revoke (delete) an API key"""
     try:
-        book = Book.objects.get(pk=pk)
-        book.is_banned = True  # You'd add this field to model
-        book.save()
-        return Response({'message': 'Book banned'})
-    except Book.DoesNotExist:
-        return Response({'error': 'Book not found'}, status=404)
-        
+        api_key = APIKey.objects.get(id=key_id, user=request.user)
+        api_key.delete()
+        return Response({'message': 'API key revoked'}, status=204)
+    except APIKey.DoesNotExist:
+        return Response({'error': 'API key not found'}, status=404)
     
     
 

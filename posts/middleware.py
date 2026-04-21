@@ -16,8 +16,11 @@ class RequestLoggerMiddleware:
         # Log request info
         logger.info(f"Incoming request: \n Scheme: {request.scheme} \n Method: {request.method} \n Path: {request.path}")
         
-        if request.path == '/':
-            return redirect("/api/posts/")
+        # if request.path == '/':
+        #     if request.user.role == "borrower":
+        #       return redirect("/api/posts/")
+        #     else:
+        #        return redirect("/api/loan-list/")
 
         # Call next middleware / view
         response = self.get_response(request)

@@ -141,6 +141,31 @@ REST_FRAMEWORK = {
     # ],
 }
 
+
+AUTH_PASSWORD_VALIDATORS = [
+    {
+        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+    },
+    {
+        'NAME': 'lib.validators.MinimumLengthValidator',
+        'OPTIONS': {
+            'min_length': 8,
+        }
+    },
+    {
+        'NAME': 'lib.validators.UppercaseValidator',
+    },
+    {
+        'NAME': 'lib.validators.LowercaseValidator',
+    },
+    {
+        'NAME': 'lib.validators.NumberValidator',
+    },
+    {
+        'NAME': 'lib.validators.SpecialCharacterValidator',
+    },
+]
+
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,

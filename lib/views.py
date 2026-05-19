@@ -34,9 +34,18 @@ from .permissions import IsLibrarian, IsAdminOrReadOnly
 
 
 #jwt login view
+from django_ratelimit.decorators import ratelimit
+from django.utils.decorators import method_decorator
 @api_view(['POST'])
 @permission_classes([AllowAny])
+@ratelimit(key='ip', rate='3/m', method='POST', block=False)
 def jwt_login_view(request):
+    
+     # Check if rate limited
+    if getattr(request, 'limited', False):
+        return Response({
+            'error': 'Too many login attempts. Try again in 1 minute.'
+        }, status=429)
     
     if not request.body or request.body == {}:
         return Response({

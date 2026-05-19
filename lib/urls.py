@@ -36,4 +36,7 @@ urlpatterns = [
     path('api-keys/create/', views.create_api_key_view),
     path('api-keys/', views.list_api_keys_view),
     path('api-keys/<int:key_id>/revoke/', views.revoke_api_key_view),
+    
+    #security
+    path('search/', views.vulnerable_search),
 ]

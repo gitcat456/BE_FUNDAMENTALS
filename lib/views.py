@@ -547,3 +547,18 @@ def revoke_api_key_view(request, key_id):
     
 
 
+# views.py - VULNERABLE ON PURPOSE
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def vulnerable_search(request):
+    username = request.query_params.get('username', '')
+    
+    # raw SQL — no sanitization
+    from django.db import connection
+    with connection.cursor() as cursor:
+        query = f"SELECT id, username, email FROM lib_user WHERE username = '{username}'"
+        print(f"RUNNING QUERY: {query}")  # so you can see it in terminal
+        cursor.execute(query)
+        rows = cursor.fetchall()
+    
+    return Response({'results': rows})

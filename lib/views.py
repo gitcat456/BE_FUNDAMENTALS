@@ -216,6 +216,10 @@ def token_me_view(request):
     })
 
 
+
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError as DjangoValidationError
+
 #Sessions authentication
 @csrf_exempt
 @require_http_methods(["POST"])
@@ -245,6 +249,11 @@ def register_view(request):
         return JsonResponse({
             'error': 'Username, email, and password required'
         }, status=400)
+        
+    try:
+     validate_password(password)
+    except DjangoValidationError as e:
+     return JsonResponse({'password': list(e.messages)}, status=400)
     
     # Check if user exists
     if User.objects.filter(username=username).exists():

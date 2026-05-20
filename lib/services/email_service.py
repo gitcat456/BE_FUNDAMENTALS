@@ -20,3 +20,29 @@ def send_welcome_email(user):
         recipient_list=[user.email],
         fail_silently=False,  # raise error if sending fails
     )
+    
+
+def send_password_reset_email(user, token):
+    reset_url = f"http://localhost:8000/api/auth/reset-password/?token={token}"
+    
+    subject = "Reset your password"
+    message=f"""
+    Hi {user.username},
+    
+    You requested a password reset.
+    
+    Click this link to reset your password (expires in 15 minutes)
+    {reset_url}
+    
+    IF you didnt request this, ignore this email.
+    Your password will not change.
+    """
+    
+    send_mail(
+        subject=subject,
+        message=message,
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        recipient_list=[user.email],
+        fail_silently=False,    
+    )
+    

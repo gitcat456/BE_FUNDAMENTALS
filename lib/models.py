@@ -3,6 +3,7 @@ from django.contrib.auth.models import AbstractUser
 import secrets
 from django.conf import settings
 from django.utils import timezone
+from datetime import timedelta
 
 class User(AbstractUser):
     """Cusom User Model"""
@@ -93,6 +94,26 @@ class AuthToken(models.Model):
         if not self.key:
             self.key = self.generate_key()
         return super().save(*args, **kwargs)
+    
+class PasswordResetToken(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    token = models.CharField(max_length=100, unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()
+    used = models.BooleanField(default=False)
+
+    def save(self, *args, **kwargs):
+        if not self.token:
+            self.token = secrets.token_urlsafe(32)  # cryptographically secure
+        if not self.expires_at:
+            self.expires_at = timezone.now() + timedelta(minutes=15)
+        super().save(*args, **kwargs)
+
+    def is_valid(self):
+        return not self.used and timezone.now() < self.expires_at
+
+    def __str__(self):
+        return f"{self.user.username} - {'valid' if self.is_valid() else 'expired'}"    
 
 class Book(models.Model):
     title = models.CharField(max_length=200)

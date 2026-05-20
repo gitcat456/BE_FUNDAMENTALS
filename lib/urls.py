@@ -39,4 +39,8 @@ urlpatterns = [
     
     #security
     path('search/', views.vulnerable_search),
+    
+    #password resets
+    path('auth/forgot-password/', views.forgot_password),
+    path('auth/reset-password/', views.reset_password),
 ]

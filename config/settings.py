@@ -166,6 +166,28 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+
+from decouple import config
+
+#                     Your Django App
+                        #     ↓
+                        # Reads .env via decouple
+                        #     ↓
+                        # Connects to SMTP server
+                        #     ↓
+                        # Authenticates
+                        #     ↓
+                        # Sends email
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'  #protocol to sed email
+EMAIL_HOST = config('EMAIL_HOST')          #mail server adress to connect to 
+EMAIL_PORT = config('EMAIL_PORT', cast=int)  #communication channel 587-TLS 465-SSL
+EMAIL_HOST_USER = config('EMAIL_HOST_USER')    #username to authenticate to the mail server 
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')  #password/apikey to log in to the server 
+EMAIL_USE_TLS = config('EMAIL_USE_TLS', cast=bool)    #TLS to encrypt the connection
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL')   #default sender adress
+
+                                
+
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,

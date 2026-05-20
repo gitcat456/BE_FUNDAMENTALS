@@ -30,6 +30,7 @@ from .refresh_utils import create_refresh_token
 from .refresh_utils import rotate_refresh_token
 from .refresh_utils import revoke_all_user_tokens
 from .permissions import IsLibrarian, IsAdminOrReadOnly 
+from .services.email_service import send_welcome_email
 # from .permissions import HasBookPermission, CanBanBook
 
 
@@ -276,6 +277,8 @@ def register_view(request):
         email=email,
         password=password  # Django hashes this automatically!
     )
+    
+    send_welcome_email(user) 
     
     return JsonResponse({
         'id': user.id,

@@ -565,3 +565,76 @@ def vulnerable_search(request):
         rows = cursor.fetchall()
     
     return Response({'results': rows})
+
+
+
+#password resets with emails
+# views.py
+from .models import PasswordResetToken
+from .services.email_service import send_password_reset_email
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError as DjangoValidationError
+
+
+# VIEW 1: user submits their email → send reset link
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def forgot_password(request):
+    email = request.data.get('email')
+
+    if not email:
+        return Response({'error': 'Email required'}, status=400)
+
+    # SECURITY: always return 200 even if email doesn't exist
+    # never tell attacker whether an email is registered or not
+    user = User.objects.filter(email=email).first()
+
+    if user:
+        # invalidate any existing tokens for this user
+        PasswordResetToken.objects.filter(
+            user=user,
+            used=False
+        ).update(used=True)
+
+        # create fresh token
+        reset_token = PasswordResetToken.objects.create(user=user)
+        send_password_reset_email(user, reset_token.token)
+
+    return Response({
+        'message': 'If that email exists you will receive a reset link shortly'
+    })
+
+
+# VIEW 2: user submits token + new password
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def reset_password(request):
+    token_str = request.data.get('token')
+    new_password = request.data.get('password')
+
+    if not token_str or not new_password:
+        return Response({'error': 'Token and password required'}, status=400)
+
+    # find the token
+    reset_token = PasswordResetToken.objects.filter(token=token_str).first()
+
+    # 3 checks: exists, not used, not expired
+    if not reset_token or not reset_token.is_valid():
+        return Response({'error': 'Token is invalid or expired'}, status=400)
+
+    # validate new password strength
+    try:
+        validate_password(new_password)
+    except DjangoValidationError as e:
+        return Response({'password': list(e.messages)}, status=400)
+
+    # set new password
+    user = reset_token.user
+    user.set_password(new_password)
+    user.save()
+
+    # mark token as used — can never be reused
+    reset_token.used = True
+    reset_token.save()
+
+    return Response({'message': 'Password reset successfully'})

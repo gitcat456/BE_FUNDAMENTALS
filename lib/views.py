@@ -1,4 +1,5 @@
-from django.shortcuts import render
+from django.shortcuts import redirect, render
+from django.conf import settings
 from rest_framework import viewsets
 from .models import Book, Loan
 from rest_framework import exceptions
@@ -93,8 +94,6 @@ def profile_view(request):
     })
     
     
-
-
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def jwt_refresh_view(request):
@@ -605,10 +604,17 @@ def forgot_password(request):
     })
 
 
-# VIEW 2: user submits token + new password
-@api_view(['POST'])
+# VIEW 2: GET redirects to frontend reset page; POST applies new password
+@api_view(['GET', 'POST'])
 @permission_classes([AllowAny])
 def reset_password(request):
+    if request.method == 'GET':
+        token = request.GET.get('token')
+        frontend = settings.FRONTEND_URL.rstrip('/')
+        if token:
+            return redirect(f'{frontend}/reset-password?token={token}')
+        return redirect(f'{frontend}/forgot-password')
+
     token_str = request.data.get('token')
     new_password = request.data.get('password')
 

@@ -58,7 +58,7 @@ ROOT_URLCONF = 'config.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -185,6 +185,8 @@ EMAIL_HOST_USER = config('EMAIL_HOST_USER')    #username to authenticate to the 
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')  #password/apikey to log in to the server 
 EMAIL_USE_TLS = config('EMAIL_USE_TLS', cast=bool)    #TLS to encrypt the connection
 DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL')   #default sender adress
+
+FRONTEND_URL = config('FRONTEND_URL', default='http://localhost:5173')
 
                                 
 

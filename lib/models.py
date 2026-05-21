@@ -30,6 +30,19 @@ class User(AbstractUser):
     def __str__(self):
         return self.username
     
+    
+
+class UserProfile(models.Model):
+    user = models.OneToOneField(
+        User,
+        on_delete=models.CASCADE,
+        related_name='profile'
+    )
+    photo_url = models.URLField(blank=True, null=True)
+    bio = models.TextField(blank=True)
+
+    def __str__(self):
+        return f"{self.user.username}'s profile"
 
 
 class APIKey(models.Model):

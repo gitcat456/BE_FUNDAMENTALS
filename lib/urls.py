@@ -43,4 +43,9 @@ urlpatterns = [
     #password resets
     path('auth/forgot-password/', views.forgot_password),
     path('auth/reset-password/', views.reset_password),
+    
+    # profile
+    path('users/profile/', views.get_profile),
+    path('users/profile/update/', views.update_profile),
+    path('users/profile/photo/', views.upload_profile_photo_view),
 ]

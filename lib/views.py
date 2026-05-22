@@ -16,7 +16,7 @@ from json.decoder import JSONDecodeError
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 import json
-from .models import User
+from .models import User, UserProfile
 
 
 from rest_framework.decorators import api_view, permission_classes
@@ -86,11 +86,14 @@ def profile_view(request):
     Role always comes from the database (not the client).
     """
     u = request.user
+    profile, _ = UserProfile.objects.get_or_create(user=u)
     return Response({
         'id': u.id,
         'username': u.username,
         'email': u.email,
         'role': u.role,
+        'photo_url': profile.photo_url,
+        'bio': profile.bio or '',
     })
     
     
@@ -276,6 +279,9 @@ def register_view(request):
         email=email,
         password=password  # Django hashes this automatically!
     )
+    
+    # Auto-create profile
+    UserProfile.objects.create(user=user)
     
     send_welcome_email(user) 
     
@@ -644,3 +650,56 @@ def reset_password(request):
     reset_token.save()
 
     return Response({'message': 'Password reset successfully'})
+
+
+
+from lib.services.cloudinary_service import upload_profile_photo
+from .serializers import UserProfileSerializer, UserProfileUpdateSerializer
+
+ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp']
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_profile(request):
+    """GET /api/users/profile/"""
+    profile, _ = UserProfile.objects.get_or_create(user=request.user)
+    serializer = UserProfileSerializer(profile)
+    return Response(serializer.data)
+
+
+@api_view(['PATCH'])
+@permission_classes([IsAuthenticated])
+def update_profile(request):
+    """PATCH /api/users/profile/ — update bio etc"""
+    profile, _ = UserProfile.objects.get_or_create(user=request.user)
+    serializer = UserProfileUpdateSerializer(profile, data=request.data, partial=True)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(UserProfileSerializer(profile).data)
+    return Response(serializer.errors, status=400)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def upload_profile_photo_view(request):
+    """POST /api/users/profile/photo/"""
+    if 'photo' not in request.FILES:
+        return Response({'error': 'No photo provided'}, status=400)
+
+    file = request.FILES['photo']
+
+    if file.content_type not in ALLOWED_IMAGE_TYPES:
+        return Response({'error': 'Only JPEG, PNG, WEBP allowed'}, status=400)
+
+    if file.size > 5 * 1024 * 1024:
+        return Response({'error': 'Max file size is 5MB'}, status=400)
+
+    try:
+        url = upload_profile_photo(file, request.user.id)
+        profile, _ = UserProfile.objects.get_or_create(user=request.user)
+        profile.photo_url = url
+        profile.save()
+        return Response({'photo_url': url})
+    except Exception as e:
+        return Response({'error': str(e)}, status=500)

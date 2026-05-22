@@ -2,6 +2,26 @@ from rest_framework import serializers
 from .models import Book, LoanItem, Loan, User
 from django.db import transaction
 from django.shortcuts import get_object_or_404
+from .models import UserProfile
+from django.contrib.auth.models import User
+
+class UserProfileSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(source='user.username', read_only=True)
+    email = serializers.CharField(source='user.email', read_only=True)
+
+    class Meta:
+        model = UserProfile
+        fields = ['username', 'email', 'photo_url', 'bio']
+        read_only_fields = ['photo_url']  # updated via upload endpoint only
+
+
+class UserProfileUpdateSerializer(serializers.ModelSerializer):
+    """For updating bio and other text fields"""
+    class Meta:
+        model = UserProfile
+        fields = ['bio']
+
+
 
 class BookSerializer(serializers.ModelSerializer):
     class Meta:

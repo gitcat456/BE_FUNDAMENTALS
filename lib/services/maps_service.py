@@ -6,34 +6,39 @@ from math import radians, sin, cos, sqrt, atan2
 MAPBOX_BASE = "https://api.mapbox.com/geocoding/v5/mapbox.places"
 
 
-def geocode_address(address: str) -> dict | None:
+def geocode_address(address: str, country: str = 'KE', proximity: str = None) -> dict | None:
     """
-    Address string → coordinates
-    Returns: {'lat': -1.2673, 'lng': 36.8120, 'place_name': 'Westlands, Nairobi'}
-    Returns None if address not found
+    address   → string to geocode
+    country   → ISO 3166-1 alpha-2 code. Default 'KE' (Kenya)
+                pass None to search globally
+    proximity → 'lng,lat' string to bias toward a point
     """
     url = f"{MAPBOX_BASE}/{requests.utils.quote(address)}.json"
 
-    response = requests.get(url, params={
+    params = {
         'access_token': settings.MAPBOX_ACCESS_TOKEN,
-        'limit': 1,          # only need the top result
-        'types': 'place,address,locality,neighborhood'
-    })
+        'limit': 1,
+        'types': 'place,address,locality,neighborhood',
+        'country': country,  # ← this is the fix
+    }
 
+    if proximity:
+        params['proximity'] = proximity  # e.g. '36.8219,-1.2921' (Nairobi CBD)
+
+    response = requests.get(url, params=params)
     data = response.json()
 
     if not data.get('features'):
         return None
 
     feature = data['features'][0]
-    lng, lat = feature['geometry']['coordinates']  # Mapbox returns [lng, lat]
+    lng, lat = feature['geometry']['coordinates']
 
     return {
         'lat': lat,
         'lng': lng,
         'place_name': feature['place_name']
     }
-
 
 def reverse_geocode(lat: float, lng: float) -> str | None:
     """

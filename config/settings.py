@@ -215,3 +215,5 @@ cloudinary.config(
     api_secret=config('CLOUDINARY_API_SECRET'),
     secure=True  # always use https
 )
+
+MAPBOX_ACCESS_TOKEN = config('MAPBOX_ACCESS_TOKEN')

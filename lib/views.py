@@ -34,6 +34,13 @@ from .permissions import IsLibrarian, IsAdminOrReadOnly
 from .services.email_service import send_welcome_email
 # from .permissions import HasBookPermission, CanBanBook
 
+from lib.services.maps_service import (
+    geocode_address,
+    reverse_geocode,
+    calculate_distance_km,
+    find_nearby_users
+)
+
 
 #jwt login view
 from django_ratelimit.decorators import ratelimit
@@ -668,16 +675,38 @@ def get_profile(request):
     return Response(serializer.data)
 
 
+# UPDATE location — geocodes automatically on save
 @api_view(['PATCH'])
 @permission_classes([IsAuthenticated])
 def update_profile(request):
-    """PATCH /api/users/profile/ — update bio etc"""
     profile, _ = UserProfile.objects.get_or_create(user=request.user)
     serializer = UserProfileUpdateSerializer(profile, data=request.data, partial=True)
-    if serializer.is_valid():
-        serializer.save()
-        return Response(UserProfileSerializer(profile).data)
-    return Response(serializer.errors, status=400)
+
+    if not serializer.is_valid():
+        return Response(serializer.errors, status=400)
+
+    # if location field is being updated, geocode it
+    if 'location' in request.data:
+        location_input = request.data['location']
+        
+         # get country from request, default to KE
+        # frontend can pass 'country': 'NG' for Nigerian users etc
+        country = request.data.get('country', 'KE')
+        
+        geo = geocode_address(location_input, country=country)
+
+        if not geo:
+            return Response(
+                {'location': 'Could not find that location. Try being more specific.'},
+                status=400
+            )
+
+        profile.place_name = geo['place_name']
+        profile.lat = geo['lat']
+        profile.lng = geo['lng']
+
+    serializer.save()
+    return Response(UserProfileSerializer(profile).data)
 
 
 @api_view(['POST'])
@@ -703,3 +732,92 @@ def upload_profile_photo_view(request):
         return Response({'photo_url': url})
     except Exception as e:
         return Response({'error': str(e)}, status=500)
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+
+# GET coordinates from any address string
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def geocode_view(request):
+    address = request.query_params.get('address')
+    country = request.query_params.get('country', 'KE')
+
+    if not address:
+        return Response({'error': 'Address required'}, status=400)
+
+    result = geocode_address(address, country=country)
+
+    if not result:
+        return Response({'error': 'Location not found'}, status=404)
+
+    return Response(result)
+
+# GET address from coordinates
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def reverse_geocode_view(request):
+    lat = request.query_params.get('lat')
+    lng = request.query_params.get('lng')
+
+    if not lat or not lng:
+        return Response({'error': 'lat and lng required'}, status=400)
+
+    address = reverse_geocode(float(lat), float(lng))
+
+    if not address:
+        return Response({'error': 'Could not reverse geocode'}, status=404)
+
+    return Response({'address': address})
+
+# GET users near a point
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def nearby_users_view(request):
+    lat = request.query_params.get('lat')
+    lng = request.query_params.get('lng')
+    radius = request.query_params.get('radius', 10)  # default 10km
+
+    if not lat or not lng:
+        return Response({'error': 'lat and lng required'}, status=400)
+
+    profiles = UserProfile.objects.exclude(lat=None).select_related('user')
+    results = find_nearby_users(float(lat), float(lng), float(radius), profiles)
+
+    return Response({
+        'count': len(results),
+        'radius_km': float(radius),
+        'users': results
+    })
+
+
+# GET distance between two users
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def distance_between_users(request, user_id):
+    try:
+        my_profile = request.user.profile
+        other_profile = UserProfile.objects.get(user_id=user_id)
+    except UserProfile.DoesNotExist:
+        return Response({'error': 'User not found'}, status=404)
+
+    if not my_profile.lat or not other_profile.lat:
+        return Response({'error': 'One or both users have no location set'}, status=400)
+
+    distance = calculate_distance_km(
+        my_profile.lat, my_profile.lng,
+        other_profile.lat, other_profile.lng
+    )
+
+    return Response({
+        'from': my_profile.place_name,
+        'to': other_profile.place_name,
+        'distance_km': distance
+    })

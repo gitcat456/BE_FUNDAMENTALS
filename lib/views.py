@@ -821,3 +821,100 @@ def distance_between_users(request, user_id):
         'to': other_profile.place_name,
         'distance_km': distance
     })
+    
+    
+    
+    
+    
+    
+from lib.services.google_auth_service import verify_google_token
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def google_login(request):
+    """
+    Receives Google ID token from frontend.
+    Returns your own JWT.
+    """
+    token = request.data.get('token')
+
+    if not token:
+        return Response({'error': 'Token required'}, status=400)
+
+    # Step 1: verify with Google
+    google_user = verify_google_token(token)
+
+    if not google_user:
+        return Response({'error': 'Invalid Google token'}, status=401)
+
+    if not google_user['email_verified']:
+        return Response({'error': 'Google email not verified'}, status=401)
+
+    email = google_user['email']
+    google_id = google_user['google_id']
+    name = google_user['name']
+    picture = google_user['picture']
+
+    # Step 2: find or create user
+    # first check by google_id (returning Google users)
+    profile = UserProfile.objects.filter(google_id=google_id).first()
+
+    if profile:
+        # returning Google user
+        user = profile.user
+    else:
+        # check if email already registered via email/password
+        user = User.objects.filter(email=email).first()
+
+        if user:
+            # existing email user — link Google to their account
+            profile, _ = UserProfile.objects.get_or_create(user=user)
+            profile.google_id = google_id
+            profile.auth_provider = 'google'
+            if not profile.photo_url and picture:
+                profile.photo_url = picture
+            profile.save()
+        else:
+            # brand new user — create account
+            username = email.split('@')[0]
+
+            # handle duplicate usernames
+            base_username = username
+            counter = 1
+            while User.objects.filter(username=username).exists():
+                username = f"{base_username}{counter}"
+                counter += 1
+
+            user = User.objects.create_user(
+                username=username,
+                email=email,
+                password=None  # no password — Google handles auth
+            )
+
+            profile = UserProfile.objects.create(
+                user=user,
+                google_id=google_id,
+                auth_provider='google',
+                photo_url=picture or ''
+            )
+
+            # send welcome email
+            try:
+                from lib.services.email_service import send_welcome_email
+                send_welcome_email(user)
+            except Exception:
+                pass  # don't fail login if email fails
+
+    # Step 3: issue JWT pair (same as email/password login)
+    access_token = generate_jwt(user)
+    refresh_token = create_refresh_token(user)
+
+    return Response({
+        'accessToken': access_token,
+        'refreshToken': refresh_token.token,
+        'username': user.username,
+        'email': user.email,
+        'photo_url': profile.photo_url,
+        'is_new_user': profile.auth_provider == 'google' and not profile.bio,
+    })

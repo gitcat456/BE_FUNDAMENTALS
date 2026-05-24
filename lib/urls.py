@@ -48,4 +48,10 @@ urlpatterns = [
     path('users/profile/', views.get_profile),
     path('users/profile/update/', views.update_profile),
     path('users/profile/photo/', views.upload_profile_photo_view),
+    
+     # maps
+    path('maps/geocode/', views.geocode_view),
+    path('maps/reverse-geocode/', views.reverse_geocode_view),
+    path('maps/nearby-users/', views.nearby_users_view),
+    path('maps/distance/<int:user_id>/', views.distance_between_users),
 ]

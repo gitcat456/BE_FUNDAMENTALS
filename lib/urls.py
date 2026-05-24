@@ -54,4 +54,7 @@ urlpatterns = [
     path('maps/reverse-geocode/', views.reverse_geocode_view),
     path('maps/nearby-users/', views.nearby_users_view),
     path('maps/distance/<int:user_id>/', views.distance_between_users),
+    
+    # lib/urls.py
+    path('auth/google/', views.google_login),
 ]

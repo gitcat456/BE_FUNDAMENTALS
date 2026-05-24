@@ -11,15 +11,16 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UserProfile
-        fields = ['username', 'email', 'photo_url', 'bio']
-        read_only_fields = ['photo_url']  # updated via upload endpoint only
+        fields = ['username', 'email', 'photo_url', 'bio', 'location', 'place_name', 'lat', 'lng']
+        read_only_fields = ['photo_url', 'place_name', 'lat', 'lng'] 
+        # lat/lng/place_name are set by geocoding, not by user directly
 
 
 class UserProfileUpdateSerializer(serializers.ModelSerializer):
     """For updating bio and other text fields"""
     class Meta:
         model = UserProfile
-        fields = ['bio']
+        fields = ['bio', 'location']
 
 
 

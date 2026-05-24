@@ -40,6 +40,12 @@ class UserProfile(models.Model):
     )
     photo_url = models.URLField(blank=True, null=True)
     bio = models.TextField(blank=True)
+    
+     # location fields
+    location = models.CharField(max_length=255, blank=True, null=True)  # raw input
+    place_name = models.CharField(max_length=255, blank=True, null=True)  # Mapbox cleaned
+    lat = models.FloatField(blank=True, null=True)
+    lng = models.FloatField(blank=True, null=True)
 
     def __str__(self):
         return f"{self.user.username}'s profile"

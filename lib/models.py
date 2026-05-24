@@ -46,6 +46,14 @@ class UserProfile(models.Model):
     place_name = models.CharField(max_length=255, blank=True, null=True)  # Mapbox cleaned
     lat = models.FloatField(blank=True, null=True)
     lng = models.FloatField(blank=True, null=True)
+    
+     # Google Login fields
+    google_id = models.CharField(max_length=255, blank=True, null=True, unique=True)
+    auth_provider = models.CharField(
+        max_length=20,
+        choices=[('email', 'Email'), ('google', 'Google')],
+        default='email'
+    )
 
     def __str__(self):
         return f"{self.user.username}'s profile"

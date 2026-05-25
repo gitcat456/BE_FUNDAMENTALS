@@ -918,3 +918,100 @@ def google_login(request):
         'photo_url': profile.photo_url,
         'is_new_user': profile.auth_provider == 'google' and not profile.bio,
     })
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    # lib/views.py
+from lib.services.twilio_service import send_otp_sms, send_otp_whatsapp
+from .models import OTPVerification
+from django.utils import timezone
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def send_otp(request):
+    """
+    User requests OTP to verify their phone number.
+    Body: { "phone_number": "+254712345678", "channel": "sms" or "whatsapp" }
+    """
+    phone_number = request.data.get('phone_number')
+    channel = request.data.get('channel', 'sms')
+
+    if not phone_number:
+        return Response({'error': 'Phone number required'}, status=400)
+
+    if channel not in ['sms', 'whatsapp']:
+        return Response({'error': 'Channel must be sms or whatsapp'}, status=400)
+
+    # invalidate any existing OTPs for this user + purpose
+    OTPVerification.objects.filter(
+        user=request.user,
+        purpose='register',
+        verified=False
+    ).update(verified=True)
+
+    # create new OTP
+    otp = OTPVerification.objects.create(
+        user=request.user,
+        channel=channel,
+        purpose='register',
+        phone_number=phone_number
+    )
+
+    # send via chosen channel
+    if channel == 'whatsapp':
+        result = send_otp_whatsapp(phone_number, otp.code, 'register')
+    else:
+        result = send_otp_sms(phone_number, otp.code, 'register')
+
+    if not result['success']:
+        return Response({'error': result['error']}, status=500)
+
+    return Response({
+        'message': f'OTP sent via {channel} to {phone_number}',
+        'expires_in': '10 minutes'
+    })
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def verify_otp(request):
+    """
+    User submits OTP code to verify their phone.
+    Body: { "code": "123456", "phone_number": "+254712345678" }
+    """
+    code = request.data.get('code')
+    phone_number = request.data.get('phone_number')
+
+    if not code or not phone_number:
+        return Response({'error': 'Code and phone number required'}, status=400)
+
+    # find matching OTP
+    otp = OTPVerification.objects.filter(
+        user=request.user,
+        code=code,
+        phone_number=phone_number,
+        purpose='register',
+        verified=False
+    ).first()
+
+    if not otp or not otp.is_valid():
+        return Response({'error': 'Invalid or expired OTP'}, status=400)
+
+    # mark OTP as used
+    otp.verified = True
+    otp.save()
+
+    # mark phone as verified on profile
+    profile, _ = UserProfile.objects.get_or_create(user=request.user)
+    profile.phone_number = phone_number
+    profile.phone_verified = True
+    profile.save()
+
+    return Response({'message': 'Phone number verified successfully'})

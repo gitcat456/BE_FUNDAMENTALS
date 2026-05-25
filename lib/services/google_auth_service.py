@@ -3,6 +3,17 @@ from google.auth.transport import requests as google_requests
 from django.conf import settings
 
 
+# [x] User clicks frontend → Google button
+# [x] Google authenticates user → gives Google JWT to frontend
+# [x] Frontend sends Google JWT to your /api/google_login/
+# [x] Your backend verifies Google JWT with Google
+# [x] Extract name, email, picture, google_id
+# [x] Find existing user or create new User + UserProfile
+# [x] Create your JWT with user_id, username, exp
+# [x] Return your JWT to frontend
+# [x] Frontend stores your JWT and uses it for all future requests
+# [x] Your backend verifies your JWT locally on every protected endpoint
+
 def verify_google_token(token: str) -> dict | None:
     """
     Verify the ID token Google gave the frontend.

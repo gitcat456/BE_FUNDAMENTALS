@@ -55,6 +55,10 @@ urlpatterns = [
     path('maps/nearby-users/', views.nearby_users_view),
     path('maps/distance/<int:user_id>/', views.distance_between_users),
     
-    # lib/urls.py
+    # oauth
     path('auth/google/', views.google_login),
+    
+    # notifications
+    path('auth/otp/send/', views.send_otp),
+    path('auth/otp/verify/', views.verify_otp),
 ]

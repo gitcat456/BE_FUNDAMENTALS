@@ -55,6 +55,10 @@ class UserProfile(models.Model):
         choices=[('email', 'Email'), ('google', 'Google')],
         default='email'
     )
+    
+     # phone
+    phone_number = models.CharField(max_length=20, blank=True, null=True, unique=True)
+    phone_verified = models.BooleanField(default=False)
 
     def __str__(self):
         return f"{self.user.username}'s profile"

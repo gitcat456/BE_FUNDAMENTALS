@@ -4,6 +4,7 @@ import secrets
 from django.conf import settings
 from django.utils import timezone
 from datetime import timedelta
+import random
 
 class User(AbstractUser):
     """Cusom User Model"""
@@ -141,6 +142,43 @@ class PasswordResetToken(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - {'valid' if self.is_valid() else 'expired'}"    
+    
+
+class OTPVerification(models.Model):
+    CHANNEL_CHOICES = [
+        ('sms', 'SMS'),
+        ('whatsapp', 'WhatsApp'),
+    ]
+    PURPOSE_CHOICES = [
+        ('register', 'Registration'),
+        ('login', 'Login'),
+        ('password_reset', 'Password Reset'),
+    ]
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='otps')
+    code = models.CharField(max_length=6)
+    channel = models.CharField(max_length=10, choices=CHANNEL_CHOICES)
+    purpose = models.CharField(max_length=20, choices=PURPOSE_CHOICES)
+    phone_number = models.CharField(max_length=20)
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()
+    verified = models.BooleanField(default=False)
+
+    def save(self, *args, **kwargs):
+        if not self.code:
+            self.code = str(random.randint(100000, 999999))  # 6-digit OTP
+        if not self.expires_at:
+            from django.utils import timezone
+            from datetime import timedelta
+            self.expires_at = timezone.now() + timedelta(minutes=10)
+        super().save(*args, **kwargs)
+
+    def is_valid(self):
+        from django.utils import timezone
+        return not self.verified and timezone.now() < self.expires_at
+
+    def __str__(self):
+        return f"{self.user.username} - {self.code} - {self.channel}"
 
 class Book(models.Model):
     title = models.CharField(max_length=200)

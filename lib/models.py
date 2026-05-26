@@ -235,9 +235,12 @@ class Loan(models.Model):
     due_date = models.DateField()
     status = models.CharField(
         max_length=20,
-        choices=[('borrowed', 'Borrowed'), ('returned', 'Returned')],
-        default='borrowed'
+        choices=[('borrowed', 'Borrowed'), ('returned', 'Returned'), ('pending_payment', 'Pending Payment'), ('cancelled', 'Cancelled'),],
+        default='pending_payment'
     )
+    
+    def __str__(self):
+        return f"Loan #{self.id} - {self.borrower.username} - {self.status}"
     
 class LoanItem(models.Model):
     loan = models.ForeignKey(Loan, related_name='items', on_delete=models.CASCADE)

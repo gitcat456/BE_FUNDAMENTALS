@@ -9,12 +9,13 @@ SECRET_KEY = 'django-insecure-_#tpqm-0=ktj1julxjmpa5um927wa1*qpff_#*zk10&2sscv%n
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["localhost", "127.0.0.1", "denz.tests"]
+ALLOWED_HOSTS = ["localhost", "127.0.0.1", "denz.tests", "https://jargonesque-lovie-unforcibly.ngrok-free.dev"]
 
 
 # Application definition
 
 INSTALLED_APPS = [
+    'payments',
     'posts',
     'coredata',
     'ecom',
@@ -51,6 +52,7 @@ MIDDLEWARE = [
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://localhost:5173",
+    "https://gleaming-eclair-f09f32.netlify.app"
 ]
 
 ROOT_URLCONF = 'config.urls'
@@ -227,3 +229,11 @@ TWILIO_ACCOUNT_SID = config('TWILIO_ACCOUNT_SID')
 TWILIO_AUTH_TOKEN = config('TWILIO_AUTH_TOKEN')
 TWILIO_PHONE_NUMBER = config('TWILIO_PHONE_NUMBER')
 TWILIO_WHATSAPP_NUMBER = config('TWILIO_WHATSAPP_NUMBER')
+
+#paystak configurations
+PAYSTACK_SECRET_KEY = config('PAYSTACK_SECRET_KEY')
+PAYSTACK_PUBLIC_KEY = config('PAYSTACK_PUBLIC_KEY')
+LOAN_PRICE_KES = 50
+PAYSTACK_CALLBACK_URL = config('PAYSTACK_CALLBACK_URL')
+
+

@@ -26,5 +26,6 @@ urlpatterns = [
     path('api/', include('ecom.urls')),
     path('api/', include('revamp.urls')),
     path('api/', include('lib.urls')),
+    path('api/payments/', include('payments.urls')),
     
 ]

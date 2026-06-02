@@ -27,7 +27,7 @@ export function GoogleSignInButton({
 
   return (
     <div
-      className={`flex w-full justify-center [&>div]:!w-full ${disabled ? 'pointer-events-none opacity-50' : ''}`}
+      className={`flex w-full justify-center [&>div]:w-full! ${disabled ? 'pointer-events-none opacity-50' : ''}`}
     >
       <GoogleLogin
         text={text}

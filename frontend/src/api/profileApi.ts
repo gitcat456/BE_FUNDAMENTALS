@@ -1,5 +1,29 @@
-import type { UserProfileDetail } from './types'
+import type {
+  GeocodeResult,
+  NearbyUsersResponse,
+  UserProfileDetail,
+} from './types'
 import { apiFetch, apiJson } from './client'
+
+export type UserProfileUpdatePayload = {
+  bio?: string
+  location?: string
+  country?: string
+}
+
+function profileUpdateErrorMessage(text: string): string {
+  try {
+    const j = JSON.parse(text) as Record<string, string | string[]>
+    for (const key of ['location', 'bio', 'error', 'detail']) {
+      const val = j[key]
+      if (typeof val === 'string') return val
+      if (Array.isArray(val) && val[0]) return String(val[0])
+    }
+  } catch {
+    /* ignore */
+  }
+  return text
+}
 
 const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp']
 const MAX_PHOTO_BYTES = 5 * 1024 * 1024
@@ -18,12 +42,46 @@ export async function fetchUserProfile(): Promise<UserProfileDetail> {
   return apiJson<UserProfileDetail>('/users/profile/')
 }
 
-export async function updateUserProfile(bio: string): Promise<UserProfileDetail> {
-  return apiJson<UserProfileDetail>('/users/profile/update/', {
+export async function updateUserProfile(
+  payload: UserProfileUpdatePayload,
+): Promise<UserProfileDetail> {
+  const res = await apiFetch('/users/profile/update/', {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ bio }),
+    body: JSON.stringify(payload),
   })
+  if (!res.ok) {
+    const text = await res.text()
+    throw new Error(profileUpdateErrorMessage(text) || `HTTP ${res.status}`)
+  }
+  return res.json() as Promise<UserProfileDetail>
+}
+
+export async function geocodeAddress(
+  address: string,
+  country = 'KE',
+): Promise<GeocodeResult> {
+  const params = new URLSearchParams({ address, country })
+  return apiJson<GeocodeResult>(`/maps/geocode/?${params}`)
+}
+
+export async function reverseGeocodeAddress(lat: number, lng: number): Promise<string> {
+  const params = new URLSearchParams({ lat: String(lat), lng: String(lng) })
+  const data = await apiJson<{ address: string }>(`/maps/reverse-geocode/?${params}`)
+  return data.address
+}
+
+export async function fetchNearbyUsers(
+  lat: number,
+  lng: number,
+  radiusKm = 10,
+): Promise<NearbyUsersResponse> {
+  const params = new URLSearchParams({
+    lat: String(lat),
+    lng: String(lng),
+    radius: String(radiusKm),
+  })
+  return apiJson<NearbyUsersResponse>(`/maps/nearby-users/?${params}`)
 }
 
 export async function uploadProfilePhoto(file: File): Promise<{ photo_url: string }> {

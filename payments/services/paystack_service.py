@@ -176,8 +176,8 @@ def verify_webhook_signature(payload_bytes: bytes, signature: str) -> bool:
     signature     → request.headers.get('x-paystack-signature')
     """
     expected_signature = hmac.new(
-        settings.PAYSTACK_SECRET_KEY.encode('utf-8'),
-        payload_bytes,
+        key=settings.PAYSTACK_SECRET_KEY.encode('utf-8'),
+        msg=payload_bytes,          
         digestmod=hashlib.sha512
     ).hexdigest()
 

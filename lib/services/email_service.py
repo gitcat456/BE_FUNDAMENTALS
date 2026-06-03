@@ -119,3 +119,26 @@ def send_order_confirmation_email(order):
     email.attach_alternative(html_content, "text/html")
     email.send()
     
+
+def send_payment_receipt_email(user, payment, loan):
+    subject = f"Payment Receipt — KES {payment.amount_paid}"
+
+    html_content = render_to_string('emails/payment_receipt.html', {
+        'username': user.username,
+        'reference': payment.reference,
+        'amount': payment.amount_paid,
+        'loan_id': loan.id,
+        'due_date': loan.due_date,
+        'books': [item.book.title for item in loan.items.select_related('book')]
+    })
+
+    text_content = f"Payment of KES {payment.amount_paid} confirmed. Reference: {payment.reference}"
+
+    email = EmailMultiAlternatives(
+        subject=subject,
+        body=text_content,
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        to=[user.email]
+    )
+    email.attach_alternative(html_content, "text/html")
+    email.send()

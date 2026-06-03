@@ -210,6 +210,17 @@ def verify_loan_payment(request):
 
     logger.info(f"Payment {reference} verified. Loan {loan.id} activated.")
 
+    from lib.services.email_service import send_payment_receipt_email
+    
+    try:
+        send_payment_receipt_email(
+            user=request.user,
+            payment=payment,
+            loan=loan
+        )
+    except Exception as e:
+        logger.error(f"Receipt email failed for {payment.reference}: {e}")
+
     return Response({
         'message': 'Payment successful. Books are yours for 14 days.',
         'status': 'success',
@@ -229,6 +240,8 @@ def verify_loan_payment(request):
 # because Paystack has no account on your system.
 # Security comes from signature verification instead.
 # ─────────────────────────────────────────────────────
+from django.views.decorators.csrf import csrf_exempt
+@csrf_exempt
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def paystack_webhook(request):

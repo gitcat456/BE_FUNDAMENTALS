@@ -56,3 +56,12 @@ class PaymentSerializer(serializers.ModelSerializer):
             'created_at', 'paid_at'
         ]
         read_only_fields = fields
+
+
+class AdminPaymentSerializer(PaymentSerializer):
+    """All payments with payer identity — admin list only."""
+    user_id = serializers.IntegerField(source='user.id', read_only=True)
+    username = serializers.CharField(source='user.username', read_only=True)
+
+    class Meta(PaymentSerializer.Meta):
+        fields = PaymentSerializer.Meta.fields + ['user_id', 'username']

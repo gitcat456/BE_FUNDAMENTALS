@@ -9,7 +9,8 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from lib.models import Loan, LoanItem, Book
 from .models import Payment
-from .serializers import LoanRequestSerializer, PaymentSerializer
+from lib.permissions import IsAdmin
+from .serializers import LoanRequestSerializer, PaymentSerializer, AdminPaymentSerializer
 from .services.paystack_service import (
     initialize_transaction,
     verify_transaction,
@@ -343,3 +344,92 @@ def payment_history(request):
 
     serializer = PaymentSerializer(payments, many=True)
     return Response(serializer.data)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated, IsAdmin])
+def admin_payment_list(request):
+    """Admin views all Paystack loan payments."""
+    payments = Payment.objects.select_related(
+        'loan', 'user'
+    ).order_by('-created_at')
+
+    serializer = AdminPaymentSerializer(payments, many=True)
+    return Response(serializer.data)
+
+
+from .services.paystack_service import refund_transaction
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def refund_payment(request, payment_id):
+    """
+    Refund a payment and cancel the loan.
+
+    Who can refund:
+    → Admin can refund any payment
+    → Member can refund their own IF loan not yet borrowed
+      (grace period — you define the rule)
+    """
+    payment = Payment.objects.filter(
+        id=payment_id
+    ).select_related('loan', 'user').first()
+
+    if not payment:
+        return Response({'error': 'Payment not found'}, status=404)
+
+    # ── AUTHORIZATION ────────────────────────────────
+    # member can only refund their own payment
+    # admin can refund anything
+    # ─────────────────────────────────────────────────
+    is_owner = payment.user == request.user
+    is_admin = request.user.role == 'admin'
+
+    if not is_owner and not is_admin:
+        return Response({'error': 'Not authorized'}, status=403)
+
+    # ── REFUND RULES ─────────────────────────────────
+    # can only refund successful payments
+    # can't refund already refunded payments
+    # ─────────────────────────────────────────────────
+    if payment.status != 'success':
+        return Response({
+            'error': f'Cannot refund a payment with status: {payment.status}'
+        }, status=400)
+
+    # ── CALL PAYSTACK ────────────────────────────────
+    try:
+        refund_result = refund_transaction(payment.reference)
+    except Exception as e:
+        logger.error(f"Refund failed for {payment.reference}: {e}")
+        return Response({'error': 'Refund failed. Try again.'}, status=500)
+
+    # ── UPDATE RECORDS ───────────────────────────────
+    # all or nothing — if any step fails, roll back
+    # ─────────────────────────────────────────────────
+    with transaction.atomic():
+        # mark payment as refunded
+        payment.status = 'refunded'
+        payment.save()
+
+        # cancel the loan
+        loan = payment.loan
+        loan.status = 'cancelled'
+        loan.save()
+
+        # restore book copies
+        # member no longer borrowing these books
+        for item in loan.items.select_related('book'):
+            book = item.book
+            book.available_copies += 1
+            book.save()
+
+    logger.info(f"Refund processed for {payment.reference}")
+
+    return Response({
+        'message': 'Refund processed successfully',
+        'reference': payment.reference,
+        'amount_refunded': refund_result['amount_refunded'],
+        'loan_status': 'cancelled'
+    })

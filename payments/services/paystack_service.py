@@ -184,3 +184,31 @@ def verify_webhook_signature(payload_bytes: bytes, signature: str) -> bool:
     # use hmac.compare_digest — timing-safe comparison
     # regular == is vulnerable to timing attacks
     return hmac.compare_digest(expected_signature, signature)
+
+def refund_transaction(reference: str, amount_kes: float=None) -> dict:
+    
+    payload = {
+        "transaction": reference,
+    }
+    
+    if amount_kes is not None:
+        payload["amount"] = to_kobo(amount_kes)
+        
+    response = requests.post(
+        f"{PAYSTACK_BASE_URL}/refund",
+        json=payload,
+        headers=get_headers()
+    )
+    
+    data = response.json()
+    
+    if not data.get('status'):
+        raise Exception(f"Paystack refund failed: {data.get('message')}")
+    
+    return {
+        'success': True,
+        'refund_reference': data['data'].get('id'),
+        'amount_refunded': data['data'].get('amount', 0) / 100,
+        'status': data['data'].get('status')
+    }
+    

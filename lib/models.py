@@ -60,6 +60,11 @@ class UserProfile(models.Model):
     phone_number = models.CharField(max_length=20, blank=True, null=True, unique=True)
     phone_verified = models.BooleanField(default=False)
 
+    # private documents stored in MinIO (e.g. CV)
+    cv_url = models.URLField(blank=True, null=True)
+    cv_object_name = models.CharField(max_length=512, blank=True, null=True)
+    cv_filename = models.CharField(max_length=255, blank=True, null=True)
+
     def __str__(self):
         return f"{self.user.username}'s profile"
 
@@ -189,6 +194,8 @@ class Book(models.Model):
     author = models.CharField(max_length=100)
     isbn = models.CharField(max_length=13, unique=True)
     available_copies = models.IntegerField()  # How many can be borrowed
+    digital_object_name = models.CharField(max_length=512, blank=True, null=True)
+    digital_filename = models.CharField(max_length=255, blank=True, null=True)
     
     class Meta:
         permissions = [

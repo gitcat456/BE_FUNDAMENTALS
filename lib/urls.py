@@ -61,4 +61,10 @@ urlpatterns = [
     # notifications
     path('auth/otp/send/', views.send_otp),
     path('auth/otp/verify/', views.verify_otp),
+
+    # MinIO / S3 object storage
+    path('storage/upload-url/', views.get_upload_url),
+    path('storage/download-url/', views.get_download_url),
+    path('storage/confirm-document/', views.confirm_profile_document),
+    path('storage/confirm-book-document/', views.confirm_book_document),
 ]

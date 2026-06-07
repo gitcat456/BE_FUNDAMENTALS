@@ -1015,3 +1015,201 @@ def verify_otp(request):
     profile.save()
 
     return Response({'message': 'Phone number verified successfully'})
+
+
+# lib/views.py
+from lib.services.storage_service import (
+    generate_presigned_upload_url,
+    generate_presigned_download_url,
+    delete_file,
+    upload_file
+)
+import uuid
+import os
+
+
+# ── GET PRE-SIGNED UPLOAD URL ────────────────────────
+# Frontend requests this BEFORE uploading.
+# Backend validates, generates URL, returns it.
+# Frontend uses URL to upload directly to MinIO/S3.
+# ─────────────────────────────────────────────────────
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def get_upload_url(request):
+    """
+    Frontend: "I want to upload a file"
+    Backend:  "Here's a temporary URL to upload it directly to S3"
+    """
+    filename = request.data.get('filename')
+    content_type = request.data.get('content_type')
+    folder = request.data.get('folder', 'uploads')
+
+    if not filename or not content_type:
+        return Response({
+            'error': 'filename and content_type required'
+        }, status=400)
+
+    # ── ALLOWED FILE TYPES ───────────────────────────
+    ALLOWED_TYPES = [
+        'image/jpeg', 'image/png', 'image/webp',
+        'application/pdf',
+        'application/msword',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'video/mp4', 'video/webm', 'video/quicktime',
+    ]
+
+    if content_type not in ALLOWED_TYPES:
+        return Response({'error': 'File type not allowed'}, status=400)
+
+    # ── GENERATE UNIQUE OBJECT NAME ──────────────────
+    # use UUID to prevent filename collisions
+    # e.g. two users upload "cv.pdf" → different paths
+    ext = os.path.splitext(filename)[1]
+    unique_filename = f"{uuid.uuid4().hex}{ext}"
+    if folder.startswith('books/book_'):
+        book_id = folder.replace('books/book_', '', 1)
+        if not book_id.isdigit() or not Book.objects.filter(id=int(book_id)).exists():
+            return Response({'error': 'Invalid book folder'}, status=400)
+        if not request.user.can_manage_books():
+            return Response({'error': 'Not authorized'}, status=403)
+        object_name = f"{folder}/{unique_filename}"
+    else:
+        object_name = f"{folder}/user_{request.user.id}/{unique_filename}"
+
+    presigned = generate_presigned_upload_url(
+        object_name=object_name,
+        content_type=content_type
+    )
+
+    return Response({
+        'upload_url': presigned['url'],
+        'upload_fields': presigned['fields'],
+        'object_name': object_name,          # frontend saves this, sends back after upload
+        'expires_in': '5 minutes'
+    })
+
+
+# ── GET PRE-SIGNED DOWNLOAD URL ──────────────────────
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_download_url(request):
+    """
+    Get temporary download link for a private file.
+    Only the file owner can get a download link.
+    """
+    object_name = request.query_params.get('object_name')
+
+    if not object_name:
+        return Response({'error': 'object_name required'}, status=400)
+
+    # ── AUTHORIZATION ────────────────────────────────
+    if not _can_download_object(request.user, object_name):
+        return Response({'error': 'Not authorized'}, status=403)
+
+    download_url = generate_presigned_download_url(
+        object_name=object_name,
+        expiry=3600  # 1 hour
+    )
+
+    return Response({
+        'download_url': download_url,
+        'expires_in': '1 hour'
+    })
+
+
+# ── CONFIRM UPLOAD + SAVE TO PROFILE ─────────────────
+# After frontend uploads directly to S3,
+# it tells your backend "upload done, here's the object_name"
+# Backend saves object_name/URL to the right model.
+# ─────────────────────────────────────────────────────
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def confirm_profile_document(request):
+    """
+    Frontend confirms upload is done.
+    Backend links the file to the user's profile.
+    """
+    object_name = request.data.get('object_name')
+    document_type = request.data.get('document_type', 'cv')
+    filename = request.data.get('filename', '')
+
+    if not object_name:
+        return Response({'error': 'object_name required'}, status=400)
+
+    if f"user_{request.user.id}" not in object_name:
+        return Response({'error': 'Not authorized'}, status=403)
+
+    file_url = f"{settings.AWS_S3_ENDPOINT_URL}/{settings.AWS_STORAGE_BUCKET_NAME}/{object_name}"
+
+    profile, _ = UserProfile.objects.get_or_create(user=request.user)
+
+    if document_type == 'cv':
+        if profile.cv_object_name and profile.cv_object_name != object_name:
+            try:
+                delete_file(profile.cv_object_name)
+            except Exception:
+                pass
+        profile.cv_url = file_url
+        profile.cv_object_name = object_name
+        profile.cv_filename = filename or os.path.basename(object_name)
+        profile.save()
+    else:
+        return Response({'error': 'Unsupported document_type'}, status=400)
+
+    return Response({
+        'message': 'Document saved',
+        'cv_filename': profile.cv_filename,
+        'cv_object_name': profile.cv_object_name,
+    })
+
+
+def _can_download_object(user, object_name):
+    if f"user_{user.id}" in object_name:
+        return True
+    if user.role in ('admin', 'librarian'):
+        return True
+    if object_name.startswith('books/book_'):
+        book_id = object_name.split('/')[0].replace('books/book_', '', 1)
+        if book_id.isdigit():
+            return Book.objects.filter(
+                id=int(book_id),
+                digital_object_name=object_name,
+            ).exists()
+    return False
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated, IsLibrarian])
+def confirm_book_document(request):
+    """Link an uploaded MinIO object to a catalog book (librarians only)."""
+    object_name = request.data.get('object_name')
+    book_id = request.data.get('book_id')
+    filename = request.data.get('filename', '')
+
+    if not object_name or not book_id:
+        return Response({'error': 'object_name and book_id required'}, status=400)
+
+    expected_prefix = f"books/book_{book_id}/"
+    if not object_name.startswith(expected_prefix):
+        return Response({'error': 'object_name does not match book'}, status=400)
+
+    book = Book.objects.filter(id=book_id).first()
+    if not book:
+        return Response({'error': 'Book not found'}, status=404)
+
+    if book.digital_object_name and book.digital_object_name != object_name:
+        try:
+            delete_file(book.digital_object_name)
+        except Exception:
+            pass
+
+    book.digital_object_name = object_name
+    book.digital_filename = filename or os.path.basename(object_name)
+    book.save()
+
+    return Response({
+        'message': 'Digital resource saved',
+        'book_id': book.id,
+        'digital_filename': book.digital_filename,
+        'digital_object_name': book.digital_object_name,
+    })

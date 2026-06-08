@@ -236,4 +236,39 @@ PAYSTACK_PUBLIC_KEY = config('PAYSTACK_PUBLIC_KEY')
 LOAN_PRICE_KES = 50
 PAYSTACK_CALLBACK_URL = config('PAYSTACK_CALLBACK_URL')
 
+# ── STORAGE CONFIGURATION ────────────────────────────
+# django-storages handles all S3/MinIO communication.
+# When you swap to AWS S3 in production:
+# → change AWS_S3_ENDPOINT_URL to None (uses AWS default)
+# → update credentials in .env
+# → zero code changes anywhere else
+# ─────────────────────────────────────────────────────
 
+AWS_ACCESS_KEY_ID = config('AWS_ACCESS_KEY_ID')
+AWS_SECRET_ACCESS_KEY = config('AWS_SECRET_ACCESS_KEY')
+AWS_STORAGE_BUCKET_NAME = config('AWS_STORAGE_BUCKET_NAME')
+AWS_S3_ENDPOINT_URL = config('AWS_S3_ENDPOINT_URL')
+AWS_S3_REGION_NAME = config('AWS_S3_REGION_NAME', default='us-east-1')
+
+# don't append auth querystring to every URL
+AWS_QUERYSTRING_AUTH = False
+
+# cache control — browser caches files for 1 day
+AWS_S3_OBJECT_PARAMETERS = {
+    'CacheControl': 'max-age=86400',
+}
+
+# ── STORAGES (Django 4.2+ way) ───────────────────────
+STORAGES = {
+    # static files → still served locally (CSS, JS)
+    "staticfiles": {
+        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+    },
+    # media files → go to MinIO/S3
+    "default": {
+        "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",
+    },
+}
+
+# where media files are accessible
+MEDIA_URL = f"{AWS_S3_ENDPOINT_URL}/{AWS_STORAGE_BUCKET_NAME}/"

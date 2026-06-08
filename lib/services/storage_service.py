@@ -54,6 +54,12 @@ def upload_file(file_obj, object_name: str, content_type: str = None) -> str:
         object_name,
         ExtraArgs=extra_args
     )
+    
+    #AWS S3 uses https://{bucket}.s3.amazonaws.com/{key}
+    # eg "https://my-media-bucket.s3.us-east-1.amazonaws.com/user123/photo.jpg"
+    
+    #MinIO uses {endpoint}/{bucket}/{key}
+    #eg "http://localhost:9000/my-app-bucket/photos/profile.jpg"
 
     return f"{settings.AWS_S3_ENDPOINT_URL}/{settings.AWS_STORAGE_BUCKET_NAME}/{object_name}"
 

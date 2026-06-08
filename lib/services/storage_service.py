@@ -1,4 +1,3 @@
-# lib/services/storage_service.py
 # ─────────────────────────────────────────────────────
 # All S3/MinIO operations live here.
 # Views never import boto3 directly.
@@ -13,9 +12,13 @@ import os
 
 def get_s3_client():
     """
-    Returns a boto3 S3 client configured for MinIO or AWS.
+    Connection to S3/MinIO) 
+    Creates client object with credentials
+    This function returns a connection object, not data
+
     endpoint_url=None → real AWS S3
     endpoint_url=http://localhost:9000 → MinIO local
+     
     """
     return boto3.client(
         's3',

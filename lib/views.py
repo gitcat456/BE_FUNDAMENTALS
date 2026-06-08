@@ -1017,7 +1017,8 @@ def verify_otp(request):
     return Response({'message': 'Phone number verified successfully'})
 
 
-# lib/views.py
+
+
 from lib.services.storage_service import (
     generate_presigned_upload_url,
     generate_presigned_download_url,
@@ -1042,14 +1043,19 @@ def get_upload_url(request):
     """
     filename = request.data.get('filename')
     content_type = request.data.get('content_type')
-    folder = request.data.get('folder', 'uploads')
+    folder = request.data.get('folder', 'uploads')  # Default to 'uploads' if not provided
 
+    # STEP 2: Validate required fields
     if not filename or not content_type:
         return Response({
             'error': 'filename and content_type required'
         }, status=400)
 
-    # ── ALLOWED FILE TYPES ───────────────────────────
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    # STEP 3: Validate file type (security!)
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    # Why? Prevent users from uploading malicious files like .exe, .php, .js
+    # that could be executed on your server or users' browsers
     ALLOWED_TYPES = [
         'image/jpeg', 'image/png', 'image/webp',
         'application/pdf',
@@ -1060,12 +1066,25 @@ def get_upload_url(request):
 
     if content_type not in ALLOWED_TYPES:
         return Response({'error': 'File type not allowed'}, status=400)
+    
 
-    # ── GENERATE UNIQUE OBJECT NAME ──────────────────
-    # use UUID to prevent filename collisions
-    # e.g. two users upload "cv.pdf" → different paths
+    # STEP 4: Generate unique filename (prevents collisions)
+    
+    # Split filename into (name_part, extension)
+    # Example: "my-document.pdf" → name_part = "my-document", extension = ".pdf"
     ext = os.path.splitext(filename)[1]
+    
+    # Generate unique 32-character hex string
+     # Combine: unique_id + extension
+    # Example: "7c9e6679e7424b0c9d8e9f6b7c4d8e3f.pdf"
     unique_filename = f"{uuid.uuid4().hex}{ext}"
+    
+    
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    # STEP 5: Handle special "books/book_X" folder logic
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    # Books require special permissions: only users who can "manage books"
+    # can upload to book folders, and the book must exist in database
     if folder.startswith('books/book_'):
         book_id = folder.replace('books/book_', '', 1)
         if not book_id.isdigit() or not Book.objects.filter(id=int(book_id)).exists():
@@ -1075,7 +1094,9 @@ def get_upload_url(request):
         object_name = f"{folder}/{unique_filename}"
     else:
         object_name = f"{folder}/user_{request.user.id}/{unique_filename}"
-
+        # Example: "uploads/user_123/7c9e6679e7424b0c9d8e9f6b7c4d8e3f.pdf"
+        
+     # STEP 7: Call service function to generate presigned URL
     presigned = generate_presigned_upload_url(
         object_name=object_name,
         content_type=content_type

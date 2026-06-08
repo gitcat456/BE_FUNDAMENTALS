@@ -167,10 +167,10 @@ def generate_presigned_download_url(
     client = get_s3_client()
 
     url = client.generate_presigned_url(
-        'get_object',
-        Params={
-            'Bucket': settings.AWS_STORAGE_BUCKET_NAME,
-            'Key': object_name,
+        'get_object',  # Operation: download/get a file
+        Params={       #Parameters for the operation
+            'Bucket': settings.AWS_STORAGE_BUCKET_NAME, #which bucket?
+            'Key': object_name,   #which file ?
         },
         ExpiresIn=expiry
     )

@@ -298,7 +298,7 @@ export function SignupPage() {
 
         </label>
 
-        <p className="text-xs leading-relaxed text-[var(--color-muted)]">
+        <p className="text-xs leading-relaxed text-muted">
 
           At least 8 characters with uppercase, lowercase, a number, and a special character.
 

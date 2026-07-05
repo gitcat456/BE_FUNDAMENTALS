@@ -278,10 +278,6 @@ AWS_S3_ENDPOINT_URL = config('AWS_S3_ENDPOINT_URL', default=None) or None
 AWS_S3_REGION_NAME = config('AWS_S3_REGION_NAME', default='us-east-1')
 
 
-# AT
-AT_USERNAME = config('AT_USERNAME', default='sandbox')
-AT_API_KEY = config('AT_API_KEY', default='')
-AT_SENDER_ID = config('AT_SENDER_ID', default='')
 
 # don't append auth querystring to every URL
 AWS_QUERYSTRING_AUTH = False
@@ -300,7 +296,7 @@ STORAGES = {
     # media files → go to MinIO/S3
     "default": {
         "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",
-    },
+    }
 }
 
 # where media files are accessible

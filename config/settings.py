@@ -1,5 +1,6 @@
 from pathlib import Path
 import dj_database_url
+from decouple import config
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -101,24 +102,6 @@ else:
 
 INTERNAL_IPS = ['127.0.0.1']
 
-# Password validation
-# https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
-
-AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
-]
-
 
 # Internationalization
 # https://docs.djangoproject.com/en/6.0/topics/i18n/
@@ -134,15 +117,22 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-
-
-REST_FRAMEWORK = {
-    'DEFAULT_RENDERER_CLASSES': (
-        'rest_framework.renderers.JSONRenderer',
-        'rest_framework.renderers.BrowsableAPIRenderer',
-    )
+STORAGES = {
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+    "default": {
+        "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",
+    },
 }
+
+
+# REST_FRAMEWORK = {
+#     'DEFAULT_RENDERER_CLASSES': (
+#         'rest_framework.renderers.JSONRenderer',
+#         'rest_framework.renderers.BrowsableAPIRenderer',
+#     )
+# }
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
@@ -156,7 +146,7 @@ REST_FRAMEWORK = {
     # ],
 }
 
-
+# https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -181,9 +171,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
-from decouple import config
-
 #                     Your Django App
                         #     ↓
                         # Reads .env via decouple
@@ -202,8 +189,6 @@ EMAIL_USE_TLS = config('EMAIL_USE_TLS', cast=bool)    #TLS to encrypt the connec
 DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL')   #default sender adress
 
 FRONTEND_URL = config('FRONTEND_URL', default='http://localhost:5173')
-
-                                
 
 
 # ── SECURITY HEADERS (production only) ───────────────
@@ -289,8 +274,14 @@ PAYSTACK_CALLBACK_URL = config('PAYSTACK_CALLBACK_URL')
 AWS_ACCESS_KEY_ID = config('AWS_ACCESS_KEY_ID')
 AWS_SECRET_ACCESS_KEY = config('AWS_SECRET_ACCESS_KEY')
 AWS_STORAGE_BUCKET_NAME = config('AWS_STORAGE_BUCKET_NAME')
-AWS_S3_ENDPOINT_URL = config('AWS_S3_ENDPOINT_URL')
+AWS_S3_ENDPOINT_URL = config('AWS_S3_ENDPOINT_URL', default=None) or None 
 AWS_S3_REGION_NAME = config('AWS_S3_REGION_NAME', default='us-east-1')
+
+
+# AT
+AT_USERNAME = config('AT_USERNAME', default='sandbox')
+AT_API_KEY = config('AT_API_KEY', default='')
+AT_SENDER_ID = config('AT_SENDER_ID', default='')
 
 # don't append auth querystring to every URL
 AWS_QUERYSTRING_AUTH = False

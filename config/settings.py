@@ -301,3 +301,7 @@ STORAGES = {
 
 # where media files are accessible
 MEDIA_URL = f"{AWS_S3_ENDPOINT_URL}/{AWS_STORAGE_BUCKET_NAME}/"
+
+# Rate limiting — tells django-ratelimit where to find
+# the real client IP when behind Nginx reverse proxy
+RATELIMIT_IP_META_KEY = config('RATELIMIT_IP_META_KEY', default='HTTP_X_FORWARDED_FOR')

@@ -238,6 +238,7 @@ def token_me_view(request):
 
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError as DjangoValidationError
+from lib.tasks import send_welcome_email_task
 
 #Sessions authentication
 @csrf_exempt
@@ -290,7 +291,10 @@ def register_view(request):
     # Auto-create profile
     UserProfile.objects.create(user=user)
     
-    send_welcome_email(user) 
+    # .delay() = run this task in background via Celery
+    # returns immediately — doesn't wait for email to send
+    # user_id not user object — tasks must be JSON serializable
+    send_welcome_email_task.delay(user.id)
     
     return JsonResponse({
         'id': user.id,

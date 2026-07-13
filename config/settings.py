@@ -305,3 +305,36 @@ MEDIA_URL = f"{AWS_S3_ENDPOINT_URL}/{AWS_STORAGE_BUCKET_NAME}/"
 # Rate limiting — tells django-ratelimit where to find
 # the real client IP when behind Nginx reverse proxy
 RATELIMIT_IP_META_KEY = config('RATELIMIT_IP_META_KEY', default='HTTP_X_FORWARDED_FOR')
+
+
+# ── CELERY CONFIGURATION ─────────────────────────────
+# BROKER = where tasks are sent (Redis)
+# RESULT_BACKEND = where task results are stored (Redis)
+#
+# Redis URL format:
+# redis://host:port/database_number
+# database_number 0-15 (Redis has 16 databases)
+# we use 0 for broker, 1 for results
+# ─────────────────────────────────────────────────────
+
+CELERY_BROKER_URL = config('CELERY_BROKER_URL', default='redis://localhost:6379/0')
+CELERY_RESULT_BACKEND = config('CELERY_RESULT_BACKEND', default='redis://localhost:6379/1')
+
+# ── TASK SETTINGS ────────────────────────────────────
+CELERY_TASK_SERIALIZER = 'json'        # tasks serialized as JSON
+CELERY_RESULT_SERIALIZER = 'json'      # results serialized as JSON
+CELERY_ACCEPT_CONTENT = ['json']       # only accept JSON
+CELERY_TIMEZONE = 'Africa/Nairobi'     # match your Django timezone
+CELERY_ENABLE_UTC = True
+
+# ── TASK BEHAVIOR ────────────────────────────────────
+# how long to keep task results in Redis
+CELERY_RESULT_EXPIRES = 3600           # 1 hour
+
+# acknowledge task AFTER it completes not before
+# if worker crashes mid-task → task goes back to queue
+# prevents lost tasks on worker crash
+CELERY_TASK_ACKS_LATE = True
+
+# if worker crashes → task goes back to queue
+CELERY_TASK_REJECT_ON_WORKER_LOST = True

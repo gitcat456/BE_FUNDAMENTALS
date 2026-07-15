@@ -6,7 +6,7 @@ export function Protected() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center text-[var(--color-muted)]">
+      <div className="flex min-h-screen items-center justify-center text-muted">
         Loading…
       </div>
     )

@@ -21,7 +21,7 @@
     color-scheme: dark;
   }
   body {
-    @apply min-h-screen bg-[var(--color-canvas)] text-[var(--color-ink)];
+    @apply min-h-screen bg-canvas text-ink;
     font-family: var(--font-sans);
     background-image:
       radial-gradient(ellipse 120% 80% at 50% -20%, rgba(201, 162, 39, 0.12), transparent),
@@ -32,5 +32,33 @@
 @layer components {
   .font-display {
     font-family: var(--font-display);
+  }
+
+  .snackbar-enter {
+    animation: snackbar-slide-in 0.38s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
+
+  .snackbar-progress {
+    animation: snackbar-progress 5.2s linear forwards;
+  }
+}
+
+@keyframes snackbar-slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(calc(100% + 1rem));
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes snackbar-progress {
+  from {
+    transform: scaleX(1);
+  }
+  to {
+    transform: scaleX(0);
   }
 }

@@ -1,19 +1,18 @@
-import { Navigate, useParams } from 'react-router-dom'
-import type { ReactNode } from 'react'
-import type { UserRole } from '../api/types'
+import { Navigate, Outlet, useParams } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
+import { normalizeUserRole } from '../utils/role'
 
 /**
  * Ensures the URL segment `/workspace/:role` matches the role returned by the API.
  * Never trust client-side role selection — the backend is the source of truth.
  */
-export function RoleParamGuard({ children }: { children: ReactNode }) {
-  const { role } = useParams()
+export function RoleParamGuard() {
+  const { role: roleParam } = useParams()
   const { profile, loading } = useAuth()
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center text-[var(--color-muted)]">
+      <div className="flex min-h-screen items-center justify-center text-muted">
         Loading…
       </div>
     )
@@ -23,10 +22,12 @@ export function RoleParamGuard({ children }: { children: ReactNode }) {
     return <Navigate to="/login" replace />
   }
 
-  const roles: UserRole[] = ['admin', 'librarian', 'member', 'customer']
-  if (!role || !roles.includes(role as UserRole) || role !== profile.role) {
-    return <Navigate to={`/workspace/${profile.role}`} replace />
+  const urlRole = normalizeUserRole(roleParam)
+  const userRole = normalizeUserRole(profile.role)
+
+  if (!urlRole || !userRole || urlRole !== userRole) {
+    return <Navigate to={`/workspace/${userRole ?? 'member'}`} replace />
   }
 
-  return <>{children}</>
+  return <Outlet />
 }

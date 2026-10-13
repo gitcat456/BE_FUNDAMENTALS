@@ -27,6 +27,7 @@ INSTALLED_APPS = [
     'debug_toolbar',
     'corsheaders',
     'rest_framework',
+    'django_celery_beat',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -338,3 +339,58 @@ CELERY_TASK_ACKS_LATE = True
 
 # if worker crashes → task goes back to queue
 CELERY_TASK_REJECT_ON_WORKER_LOST = True
+
+
+
+# ── CELERY BEAT SCHEDULE ─────────────────────────────
+# Define all scheduled tasks here.
+# crontab() = familiar cron syntax
+# schedule in seconds = simple intervals
+#
+# These tasks fire automatically at specified times.
+# Beat drops them into Redis → Worker executes them.
+# ─────────────────────────────────────────────────────
+
+from celery.schedules import crontab
+
+CELERY_BEAT_SCHEDULE = {
+
+    # ── LOAN REMINDERS ───────────────────────────────
+    # Every day at 8:00 AM Nairobi time
+    # Finds all loans due tomorrow → sends reminder
+    'send-loan-due-reminders': {
+        'task': 'lib.tasks.send_loan_due_reminders_task',
+        'schedule': crontab(hour=8, minute=0),
+        'options': {'expires': 3600}  # expire if not picked up in 1hr
+    },
+
+    # ── CLEANUP EXPIRED TOKENS ───────────────────────
+    # Every night at midnight
+    # Deletes used/expired password reset tokens from DB
+    # Keeps your DB clean — these tokens are useless after expiry
+    'cleanup-expired-tokens': {
+        'task': 'lib.tasks.cleanup_expired_tokens_task',
+        'schedule': crontab(hour=0, minute=0),
+    },
+
+    # ── CLEANUP EXPIRED OTPS ─────────────────────────
+    # Every hour
+    # OTPs expire in 10 minutes — clean them up regularly
+    'cleanup-expired-otps': {
+        'task': 'lib.tasks.cleanup_expired_otps_task',
+        'schedule': crontab(minute=0),  # top of every hour
+    },
+
+    # ── CANCEL STALE PENDING PAYMENTS ────────────────
+    # Every hour
+    # Loans stuck in pending_payment for > 1 hour
+    # Member never completed payment → cancel + free books
+    'cancel-stale-payments': {
+        'task': 'payments.tasks.cancel_stale_payments_task',
+        'schedule': crontab(minute=30),  # every hour at :30
+    },
+
+}
+
+# tell Beat to use Django DB for schedule storage
+CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
